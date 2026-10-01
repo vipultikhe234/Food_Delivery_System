@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.fooddelivery.example/event-contracts/envelope.schema.json",
+  "title": "Event envelope",
+  "description": "Common envelope of every event and command (docs/08-event-driven-architecture.md section 1, REQ-PLAT-005 AC1).",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "producer",
+    "aggregateType",
+    "aggregateId",
+    "correlationId",
+    "actor",
+    "payload"
+  ],
+  "properties": {
+    "eventId": { "type": "string", "format": "uuid" },
+    "eventType": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]{0,127}$" },
+    "eventVersion": { "type": "integer", "minimum": 1 },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "producer": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "aggregateType": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "aggregateId": { "type": "string", "format": "uuid" },
+    "aggregateVersion": { "type": ["integer", "null"], "minimum": 0 },
+    "correlationId": { "type": "string", "pattern": "^[A-Za-z0-9._-]{1,64}$" },
+    "causationId": { "type": ["string", "null"], "format": "uuid" },
+    "actor": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "id": { "type": ["string", "null"], "maxLength": 128 }
+      },
+      "additionalProperties": false
+    },
+    "payload": { "type": "object" }
+  },
+  "additionalProperties": false
+}
