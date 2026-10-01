@@ -1,0 +1,2 @@
+com.fooddelivery.platform.web.WebErrorAutoConfiguration
+com.fooddelivery.platform.web.HttpClientAutoConfiguration

@@ -20,5 +20,6 @@
         <module>common-persistence</module>
         <module>common-observability</module>
         <module>event-contracts</module>
+        <module>test-support</module>
     </modules>
 </project>
