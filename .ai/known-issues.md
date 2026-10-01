@@ -3,7 +3,6 @@
 | ID | Item | Impact | Owner / next step |
 |---|---|---|---|
 | KI-021 | Docker engine not running on the development machine (CLI present; WSL 2 / Docker Desktop being installed by the owner). Not executed: image build, `docker compose up` for any profile, Testcontainers, Loki search by traceId (REQ-OBS-001 AC3), config change without rebuild (REQ-PLAT-003 AC3) | REQ-DEVOPS-001, REQ-OBS-001 AC3 and the Phase 4 exit criterion "Compose stack runs" are unverified. Only `docker compose config` was run | Run the Compose stack (infra + platform + observability) and the image build as soon as Docker works, then record the evidence |
-| KI-019 | Error body conflict: REQ-PLAT-004 AC1 specifies `{success:false, code, message, timestamp, traceId, details?}`, doc 07 (approved design) specifies RFC 9457 Problem Details with `code`, `correlationId`, `timestamp`. The gateway follows doc 07 | Clients and the shared error library (Phase 4B) need one format | Project owner decides before Phase 4B; the losing side gets a new version with an impact report |
 | KI-020 | Gateway rate limiting and the `revoked_sessions` deny-list are not in Phase 4A; they need Redis-backed identity state and are planned with identity-service in Phase 5 | REQ-PLAT-001 description mentions rate limiting (no AC yet covers it); revoked access tokens stay valid until expiry | Implement with identity-service in Phase 5 |
 | KI-023 | Graceful deregistration on SIGTERM (REQ-PLAT-002 AC1) not verified: Windows cannot send SIGTERM to a JVM process. Crash removal was measured (15.2 s registry side, ~21 s calculated worst case with client caches) | AC1 deregistration half unverified; client-side removal time calculated, not measured | Verify with `docker compose stop api-gateway` once Docker works (KI-021) |
 | KI-018 | MinIO: `minio/minio` is no longer published on Docker Hub; local Compose uses the frozen `bitnamilegacy/minio:2025.7.23-debian-12-r5` image (owner decision 2026-10-01, local only) | Frozen image receives no security updates; acceptable for local development only | Revisit before Phase 6 (media-service): choose a maintained S3-compatible image or build MinIO from source |
@@ -22,6 +21,7 @@
 ## Resolved
 | ID | Item | Resolution |
 |---|---|---|
+| KI-019 | Error body conflict between REQ-PLAT-004 v1 AC1 and doc 07 §3 | Decided 2026-10-01: RFC 9457 per doc 07; REQ-PLAT-004 v2 via [IMPACT-0003](../docs/requirements/impact/IMPACT-0003.md) |
 | KI-005 | Spring Boot / Spring Cloud versions not pinned | Pinned 2026-10-01: Boot 4.1.1, Cloud 2025.1.3 (`backend/pom.xml`); `mvnw verify` green |
 | KI-010 | Spotless failed with google-java-format 1.37.0 | google-java-format 1.37.0 fails inside spotless-maven-plugin 3.10.3 (works standalone); pinned to 1.36.1, the plugin default. Revisit when Spotless updates |
 | KI-013 | ROS addendum not yet in `requirements.json` | Registered 2026-10-01 (207 requirements; validator OK with history check). REQ-WALLET-002 kept, not cancelled (ROS-OQ-16 correction) |

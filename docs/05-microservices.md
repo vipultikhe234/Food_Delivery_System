@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Version | 1.1.1 |
-| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design; v1.1.1: §1.2 completed from the §3 API cards in Phase 4) |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design; v1.1.1: §1.2 completed from the §3 API cards in Phase 4, approved at the Phase 4A checkpoint) |
 | Depends on | [04 System Architecture](04-system-architecture.md), [ADR-001](17-adr/ADR-001-microservices.md), [ADR-018](17-adr/ADR-018-restaurant-os-services.md) |
 
 This document defines each deployable: its responsibility, owned data, API surface, synchronous dependencies, events, scaling profile and the requirements it implements. Data models are in [06](06-database-design.md), endpoint conventions in [07](07-api-design.md), and the event catalogue in [08](08-event-driven-architecture.md).

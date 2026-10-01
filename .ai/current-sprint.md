@@ -19,8 +19,10 @@ TESTS EXECUTED:     mvnw verify BUILD SUCCESS: common-observability 32, config-s
                     (probes, auth, 401/503 bodies, headers, Eureka registration, crash removal 15.2 s)
 NOT EXECUTED:       Image build, compose up, Testcontainers, Loki traceId search (KI-021); graceful
                     deregistration (KI-023); GitHub Actions for this change (not pushed)
-KNOWN ISSUES:       KI-018..023 (new), KI-006..009, KI-011, KI-012, KI-014..017
-NEXT ACTION:        Owner decides KI-019 (error format) and approves docs 05 v1.1.1 / 13 v1.1.0; then Phase 4B
+DECISIONS:          2026-10-01 checkpoint: error format RFC 9457 (REQ-PLAT-004 v2, IMPACT-0003, KI-019 resolved);
+                    docs 05 v1.1.1 and 13 v1.1.0 approved; branch pushed with a PR into develop
+KNOWN ISSUES:       KI-018, KI-020..023 (new), KI-006..009, KI-011, KI-012, KI-014..017
+NEXT ACTION:        Phase 4B (REQ-PLAT-004..008); Compose run as soon as Docker works (KI-021)
 ```
 
 ```text

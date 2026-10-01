@@ -387,13 +387,13 @@
     {
       "id": "REQ-PLAT-004",
       "title": "Standard API contract: error format and OpenAPI documentation",
-      "module": "PLAT", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 2, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §37", "MP §38"], "businessRequirement": ["BR-10"],
       "description": "Consistent error responses and complete OpenAPI documentation for every API.",
       "technicalRequirement": "Shared error library with @RestControllerAdvice; springdoc-openapi per service, aggregated at the gateway; generated TypeScript clients for web/mobile.",
       "dependencies": [],
       "acceptanceCriteria": [
-        "AC1: Every error response is {success:false, code, message, timestamp, traceId, details?} with a stable machine-readable code.",
+        "AC1: Every error response is an RFC 9457 Problem Details document (application/problem+json) extended with a stable machine-readable code, correlationId, timestamp and, for validation failures, errors[] (docs/07-api-design.md §3).",
         "AC2: Stack traces, SQL, and internal class names never appear in responses (negative tests).",
         "AC3: Validation failures return 400 with field-level details.",
         "AC4: Each endpoint's OpenAPI entry documents method, request, response, validation, authentication, required permissions, error codes and an example.",
@@ -408,8 +408,11 @@
       "performanceRequirements": [],
       "assignedAgent": "BackendAgent", "assignedDeveloper": null,
       "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
-      "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "changeHistory": [
+        {"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"},
+        {"version": 2, "date": "2026-10-01", "by": "BackendAgent", "status": "ANALYSIS", "summary": "AC1 aligned with the approved API design: RFC 9457 Problem Details extended with code, correlationId, timestamp and errors[]", "reason": "Phase 4A found v1 AC1 conflicted with docs/07-api-design.md §3 (KI-019)", "impactReport": "docs/requirements/impact/IMPACT-0003.md", "previousValues": {"acceptanceCriteria.AC1": "AC1: Every error response is {success:false, code, message, timestamp, traceId, details?} with a stable machine-readable code."}, "approvedBy": "Project owner (IMPACT-0003 approved 2026-10-01)"}
+      ],
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 2, "from": null, "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "New version created (versioning rule); IMPACT-0003"}, {"version": 2, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "IMPACT-0003 approved (error format decision at the Phase 4A checkpoint)"}]
     },
     {
       "id": "REQ-PLAT-005",
