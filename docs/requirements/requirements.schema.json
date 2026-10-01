@@ -192,6 +192,7 @@
         "status": { "$ref": "#/$defs/status" },
         "priority": { "$ref": "#/$defs/priority" },
         "phase": { "type": ["integer", "null"], "minimum": 1, "maximum": 24 },
+        "subPhase": { "type": "string", "pattern": "^[A-Z]$" },
         "targetRelease": { "type": ["string", "null"] },
         "source": { "$ref": "#/$defs/sources" },
         "businessRequirement": { "type": "array", "items": { "type": "string", "pattern": "^BR-\\d{2}$" } },

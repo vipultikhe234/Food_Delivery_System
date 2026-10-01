@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | MENU (continues the approved REQ-MENU-001..004) |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §2, §3, §19, §30.9 |
 | Proposed owner | catalog-service (today's menu-service) |
 | Proposed phase | 6 |

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | KDS |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §11, §12 |
 | Proposed owner | kitchen-service (state), realtime-service (WebSocket push, REQ-RT-001) |
 | Proposed phase | 13B (backend). The KDS web app is built in Phase 14. |

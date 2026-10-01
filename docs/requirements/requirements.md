@@ -244,7 +244,7 @@ Priority definitions:
 - **P1 (Should):** mandated by the brief but not on the core ordering path.
 - **P2 (Could):** backlog, pending confirmation.
 
-Current statuses: 103 requirements are **APPROVED** and 4 are in **DEVELOPMENT** since Phase 3 (REQ-DEVOPS-002, REQ-RMS-001..003). The Restaurant OS addendum ([restaurant-os/](restaurant-os/README.md), IMPACT-0002) is approved but not yet registered here. REQ-ORDER-002 and REQ-RT-003 are at version 2 (IMPACT-0001, approved 2026-10-01); all others are at version 1. The three P2 items (REQ-PROMO-004, REQ-WALLET-002, REQ-REC-002) remain in **ANALYSIS** as backlog. `requirements.json` holds the authoritative status and history.
+Current statuses (207 requirements): 200 **APPROVED**, 4 in **DEVELOPMENT** since Phase 3 (REQ-DEVOPS-002, REQ-RMS-001..003) and 3 P2 items in **ANALYSIS**. 97 of them come from the Restaurant OS addendum (§8.14). IMPACT-0002 moved 13 requirements to a new version (REQ-ORDER-002 is now v3). REQ-ORDER-002 and REQ-RT-003 are at version 2 (IMPACT-0001, approved 2026-10-01); all others are at version 1. The three P2 items (REQ-PROMO-004, REQ-WALLET-002, REQ-REC-002) remain in **ANALYSIS** as backlog. `requirements.json` holds the authoritative status and history.
 
 ### 8.1 Requirement & release management (Phase 1)
 | ID | Title | Pri | Phase | Depends on | Source |
@@ -419,6 +419,9 @@ This shows the format used for every requirement in `requirements.json`:
 - **AC4:** Cancelling a paid order moves it through REFUND_PENDING to REFUNDED via payment-service.
 - **AC5:** Cancellation releases the coupon reservation and any delivery assignment.
 - *Testing:* backend unit, integration and API tests; web and mobile E2E; a negative test per non-cancellable state; an IDOR test.
+
+### 8.14 Restaurant OS addendum (Phases 6, 8, 13A–13E, 17)
+97 requirements in modules PRODUCT, MENU (005–010), ORDER (007–009), POS, BILL, KOT, KDS, RECIPE, INV, PURCHASE, SUPPLIER, OUTLET and QR, plus REQ-ANALYTICS-002, REQ-AI-004, REQ-AI-005 and REQ-PAYMENT-006. Full text, acceptance criteria and the decided open questions ROS-OQ-01..22 are in [restaurant-os/](restaurant-os/README.md). New NFRs: NFR-PERF-005..007. New business requirement BR-11. Impact on earlier requirements: [IMPACT-0002](impact/IMPACT-0002.md).
 
 ---
 

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Modules | POS (new), ORDER (extends REQ-ORDER-001..006) |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §6, §7, §8, §9, §28, §30 |
 | Proposed owner | pos-service (new): tables, sessions, held orders, bills. order-service stays the single owner of all orders. |
 | Proposed phase | 13A (backend). The POS web app is built in Phase 14 (ROS-OQ-02). |

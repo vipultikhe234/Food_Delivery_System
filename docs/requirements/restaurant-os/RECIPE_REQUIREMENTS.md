@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | RECIPE |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §13, §15, §16, §20, §30.4 |
 | Proposed owner | inventory-service (new, ROS-OQ-01) |
 | Proposed phase | 13C |

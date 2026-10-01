@@ -31,7 +31,7 @@ The ROS brief introduces the master product vs menu item split, channels, order 
 | REQ-ORDER-003 (restaurant accept/ready) | v1 | Acceptance generates KOTs; READY can come from the KDS roll-up (REQ-KOT-002, REQ-KDS-003) | v2 |
 | REQ-RT-002 (real-time updates) | v1 | New kitchen, table and QR-session topics (REQ-KDS-002) | v2 |
 | REQ-WEB-002 (restaurant dashboard) | v1 | Gains HQ catalogue, recipe, inventory and purchasing screens. POS and KDS become separate apps (new REQ-WEB-005, REQ-WEB-006, defined in design) | v2 |
-| REQ-WALLET-002 (split payment, P2, ANALYSIS) | v1 | Superseded by REQ-BILL-004 → CANCELLED (ROS-OQ-16) | — |
+| REQ-WALLET-002 (split payment, P2, ANALYSIS) | v1 | **No change.** Approved as cancelled (ROS-OQ-16), but corrected during registration: it covers online wallet + gateway checkout, which REQ-BILL-004 (in-store bills) doesn't replace. It stays in the backlog. | — |
 
 **Not changed:** REQ-PAYMENT-002 webhook idempotency already covers BR-R6. REQ-AUDIT-001 covers BR-R12. REQ-PLAT-006 (outbox, idempotent consumers) covers ROS §27. REQ-AI-002 (controlled tools, no database access) already covers the restaurant tools. Delivery, location, review, search and notification requirements are only touched through new event fields.
 
@@ -57,6 +57,6 @@ Nothing is implemented yet. Once implemented: the online ordering E2E suite (UJ-
 ## Approval
 - [x] ROS requirement documents approved, with ROS-OQ-01..22 decided as recommended (2026-10-01)
 - [x] Version bumps of the affected requirements above approved (2026-10-01)
-- [x] REQ-WALLET-002 cancellation approved (2026-10-01)
+- [x] REQ-WALLET-002 cancellation approved (2026-10-01), then withdrawn by RequirementAgent because REQ-BILL-004 doesn't cover online wallet + gateway checkout. No change to REQ-WALLET-002.
 
-Pending: recording all of this in `requirements.json`, scheduled after Phase 3 completes (project owner's choice). At that point `requirements.json` gets the new requirements (ANALYSIS → APPROVED) and the version bumps with their history entries, and the validator is run. Then the design stage produces POS_ARCHITECTURE.md, INVENTORY_ARCHITECTURE.md, ORDER_ARCHITECTURE.md, KITCHEN_ARCHITECTURE.md, the ERD, service boundaries, API contracts, Kafka events, state machines and sequence diagrams (ROS §31).
+Recorded in `requirements.json` on 2026-10-01: 97 new requirements (DRAFT → ANALYSIS → APPROVED), 13 version bumps with `previousValues`, this impact report and the approver, and NFR-PERF-005..007. The validator passed, including the history check against the previous commit. Next, the design stage produces POS_ARCHITECTURE.md, INVENTORY_ARCHITECTURE.md, ORDER_ARCHITECTURE.md, KITCHEN_ARCHITECTURE.md, the ERD, service boundaries, API contracts, Kafka events, state machines and sequence diagrams (ROS §31).

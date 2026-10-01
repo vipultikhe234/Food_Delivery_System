@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | OUTLET |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §19, §20, §30.11, §30.12 |
 | Proposed owner | restaurant-service (brand, outlets, staff), inventory-service (central kitchen transfers) |
 | Proposed phase | 5–6 for tenancy and roles; 13D for central kitchen |

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | PURCHASE |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §17, §18, §24, §26 |
 | Proposed owner | procurement-service (new, ROS-OQ-01) |
 | Proposed phase | 13D |

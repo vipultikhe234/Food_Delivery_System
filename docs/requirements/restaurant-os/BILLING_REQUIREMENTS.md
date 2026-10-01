@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Module | BILL |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §6, §22, §23, §30.3, §30.6 |
 | Proposed owner | pos-service billing module (bills, splits, invoices); payment-service (gateway payments, refunds, webhooks) |
 | Proposed phase | 13A |
-| Affects | REQ-CART-002 (shared pricing rules), REQ-WALLET-002 (superseded, ROS-OQ-16), REQ-PAYMENT-001 (IMPACT-0002) |
+| Affects | REQ-CART-002 (shared pricing rules, IMPACT-0002). REQ-WALLET-002 (online wallet + gateway split) stays separate (ROS-OQ-16 correction). |
 
 ## Scope
 Computing, issuing, splitting, merging and settling bills for in-store orders, and keeping issued bills immutable. Online delivery orders keep their existing quote → payment flow; their tax invoice uses the same invoice rules (REQ-BILL-002).

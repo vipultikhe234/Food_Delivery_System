@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | INV |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §14, §15, §16, §17, §30.1, §30.5 |
 | Proposed owner | inventory-service (new, ROS-OQ-01) |
 | Proposed phase | 13C |
@@ -59,7 +59,7 @@ Inventory (stock item master), Warehouse (location), Stock (balance per item and
 ### REQ-INV-005 — Negative stock (BR-R1)
 - AC1: Default: manual movements (transfer out, waste, adjustment, return) that would make a balance negative are rejected.
 - AC2: Outlets can explicitly allow negative stock. The setting is audited.
-- AC3: Consumption for a completed order always posts. Where negative stock is not allowed, the handling in ROS-OQ-10 applies (raise `STOCK_DISCREPANCY`, never reject or rewrite ledger entries). Final rule to be confirmed.
+- AC3: Consumption for a completed order always posts. Where negative stock is not allowed, the balance is clamped at zero and `StockDiscrepancyDetected` is raised for a count. Ledger entries are never rejected or rewritten (ROS-OQ-10).
 
 ### REQ-INV-006 — Batches and expiry
 - AC1: Receipts can create batches with a batch number and expiry date. FIFO costing and consumption use batches in expiry order.

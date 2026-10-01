@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | PRODUCT |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §1, §2, §4, §5, §19, §27, §30 |
 | Proposed owner | catalog-service (today's menu-service, ROS-OQ-01) |
 | Proposed phase | 6 (folded into the existing catalogue phase, ROS-OQ-02) |

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | QR |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §21, §3, §7, §8 |
 | Proposed owner | pos-service (QR codes and sessions); order-service (orders); catalog-service (QR menu) |
 | Proposed phase | 13E |

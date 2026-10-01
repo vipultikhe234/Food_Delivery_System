@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | KOT |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §10, §12, §30.7 |
 | Proposed owner | kitchen-service (new, ROS-OQ-01) |
 | Proposed phase | 13B |

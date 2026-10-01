@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Module | SUPPLIER |
-| Status | DRAFT (see [README](README.md)) |
+| Status | Approved 2026-10-01 (see [README](README.md)) |
 | Sources | ROS §18, §19 |
 | Proposed owner | procurement-service (new, ROS-OQ-01) |
 | Proposed phase | 13D |

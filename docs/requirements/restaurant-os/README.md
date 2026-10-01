@@ -4,7 +4,7 @@
 |---|---|
 | Source | Project owner's "Additional module — Advanced Restaurant POS + Product + Inventory Platform" brief, received 2026-10-01. Cited as **ROS §n** (section numbers below). |
 | Stage | Requirement analysis (ROS §31, step 1). No architecture or code yet. |
-| Status | **Approved 2026-10-01** by the project owner, with all 22 open questions decided as recommended (table below). Registration in `requirements.json` (ANALYSIS → APPROVED with history) follows after Phase 3 completes, as the project owner chose. |
+| Status | **Approved 2026-10-01** by the project owner, with all 22 open questions decided as recommended (table below). Registered in `requirements.json` as APPROVED with history; phases use `phase` 13 plus `subPhase` A–E for 13A–13E. |
 | Impact on the approved baseline | [IMPACT-0002](../impact/IMPACT-0002.md) |
 | Constraint | Independent design. Commercial POS products are used only as a reference for publicly observable capabilities. No code, UI, branding, API or schema is copied (ROS preamble). |
 
@@ -117,7 +117,7 @@ Each document lists its test obligations. All ROS modules need unit, integration
 | ROS-OQ-13 | Service charge | Since the 2022 CCPA guidelines in India, a service charge can't be added automatically or compulsorily. Proposal: it's off by default, can be configured per outlet, is shown separately and can be removed per bill. |
 | ROS-OQ-14 | Invoice numbering | Sequential, gap-free invoice numbers per outlet per financial year, which GST invoicing requires (assumption A1, India-first). |
 | ROS-OQ-15 | POS platform ("dedicated POS application", ROS §6) | React web app `web/apps/pos`, optimised for tablet and touch, installable as a PWA. A Capacitor Android tablet build is optional later. |
-| ROS-OQ-16 | REQ-WALLET-002 (split payment, P2 backlog) overlaps REQ-BILL-004 | Cancel REQ-WALLET-002 with reason "superseded by REQ-BILL-004". |
+| ROS-OQ-16 | REQ-WALLET-002 (split payment, P2 backlog) overlaps REQ-BILL-004 | Approved as "cancel REQ-WALLET-002, superseded by REQ-BILL-004". **Corrected during registration:** REQ-BILL-004 covers in-store bills only, while REQ-WALLET-002 covers online checkout (wallet + gateway). Cancelling it would remove functionality, so REQ-WALLET-002 stays in the backlog unchanged. |
 | ROS-OQ-17 | Order completion. ROS §27 names `OrderCompleted`; the approved delivery flow ends at DELIVERED. | Add a terminal `COMPLETED` status for every order type. Delivery orders go DELIVERED → COMPLETED automatically. |
 | ROS-OQ-18 | Outlet vs branch naming | Keep `branch` in code and APIs (approved baseline); show "Outlet" in the POS and HQ UI. |
 | ROS-OQ-19 | POS and KDS performance targets are not in the brief | PROPOSED NFRs: POS order submit p95 < 500 ms; KOT visible on KDS p95 < 2 s after acceptance; consumption posted p95 < 10 s after completion. These will be measured, not claimed (MP). |
