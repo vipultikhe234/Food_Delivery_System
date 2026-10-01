@@ -7,7 +7,8 @@
 | Phase 3: Repository structure | **Done** 2026-10-01, awaiting review (monorepo skeleton, backend parent POM and platform modules, Maven wrapper, pnpm workspace, requirements validator, CI workflows, git hooks) |
 | Restaurant OS addendum: requirements | **Approved** 2026-10-01 and registered in `requirements.json` ([restaurant-os/](requirements/restaurant-os/README.md), [IMPACT-0002](requirements/impact/IMPACT-0002.md)) |
 | Restaurant OS addendum: design | **Approved** 2026-10-01 ([architecture/restaurant-os/](architecture/restaurant-os/README.md), ADR-018..021, decisions D-01..D-23 as proposed) |
-| Phase 4: Infrastructure | Next |
+| Phase 4A: Infrastructure (Compose, config, discovery, gateway, logging) | **In review** 2026-10-01: `mvnw verify` green; Compose stack not yet run (Docker unavailable, KI-021); docs 05 v1.1.1 and 13 v1.1.0 approved; error format decided ([IMPACT-0003](requirements/impact/IMPACT-0003.md)) |
+| Phase 4B: Platform libraries (errors, persistence, events/outbox, idempotency, resilience) | Next |
 
 ## Requirements (sources of truth)
 | # | Document | Content |
@@ -15,7 +16,7 @@
 | 01 | [requirements/requirements.md](requirements/requirements.md) §1–4 | Vision, scope, assumptions, business requirements, actors |
 | 02 | [requirements/requirements.json](requirements/requirements.json) | **Canonical** machine-readable requirements (207 functional, 25 non-functional, status model, roadmap, open questions) |
 | 03 | [requirements/requirements.md](requirements/requirements.md) §5–13 | Journeys, catalogue, dependency graph, phase-order notes, roadmap, open questions |
-| — | [requirements/impact/](requirements/impact/) | Change impact reports (IMPACT-0001: order status / early partner assignment, approved; IMPACT-0002: Restaurant OS addendum, approved) |
+| — | [requirements/impact/](requirements/impact/) | Change impact reports (IMPACT-0001: order status / early partner assignment, approved; IMPACT-0002: Restaurant OS addendum, approved; IMPACT-0003: RFC 9457 error format, approved) |
 | — | [requirements/restaurant-os/](requirements/restaurant-os/README.md) | Restaurant OS addendum: 12 requirement documents (POS, product, menu, KOT, KDS, inventory, recipe, purchase, supplier, multi-outlet, QR, billing), 97 requirements, decided open questions ROS-OQ-01..22 |
 | — | [requirements/requirements.schema.json](requirements/requirements.schema.json) | JSON Schema for `requirements.json`, enforced in CI by `tools/requirements-validator` |
 

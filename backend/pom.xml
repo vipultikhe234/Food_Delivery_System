@@ -18,6 +18,7 @@
 
     <modules>
         <module>platform</module>
+        <module>services</module>
     </modules>
 
     <properties>

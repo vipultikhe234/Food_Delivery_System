@@ -308,7 +308,7 @@
     {
       "id": "REQ-PLAT-001",
       "title": "API Gateway: routing, versioning, correlation, CORS, security headers",
-      "module": "PLAT", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §6"], "businessRequirement": ["BR-10"],
       "description": "Single entry point for all client traffic with routing, authentication, rate limiting, tracing and security headers.",
       "technicalRequirement": "Spring Cloud Gateway; routes /api/v1/<context>/**; JWT validation via identity-service JWKS (enabled in Phase 5); X-Correlation-Id generated if absent; access logging.",
@@ -330,12 +330,12 @@
       "assignedAgent": "BackendAgent", "assignedDeveloper": null,
       "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-01", "by": "BackendAgent", "reason": "Phase 4A: route table in docs/05-microservices.md §1.2 (v1.1.1) and infrastructure/config-repo/api-gateway.yml"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-01", "by": "BackendAgent", "reason": "Phase 4A: api-gateway implemented. Local mvnw verify green: RouteTableTest (AC1), GatewayIntegrationTest 401/invalid-token/public allow-list (AC2), correlation ID kept/replaced/forwarded with traceparent and spoofed headers stripped (AC3 gateway side), security headers (AC4), CORS allow/deny (AC5). Open: AC2 error body follows doc 07 and conflicts with REQ-PLAT-004 AC1 (KI-019); AC3 downstream logs unverifiable until a downstream service exists; rate limiting deferred to Phase 5 (KI-020); p95 overhead not measured; awaiting PR"}]
     },
     {
       "id": "REQ-PLAT-002",
       "title": "Service discovery, health checks and client-side load balancing",
-      "module": "PLAT", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §7"], "businessRequirement": ["BR-10"],
       "description": "Services register dynamically, expose health and are load-balanced by logical name.",
       "technicalRequirement": "Spring Cloud Netflix Eureka (see open question OQ-15 for Kubernetes-native alternative); Spring Cloud LoadBalancer; Actuator liveness/readiness groups.",
@@ -356,12 +356,12 @@
       "assignedAgent": "BackendAgent", "assignedDeveloper": null,
       "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-01", "by": "BackendAgent", "reason": "Phase 4A: Eureka timings and probe groups designed in docs/05-microservices.md and infrastructure/config-repo/application.yml"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-01", "by": "BackendAgent", "reason": "Phase 4A: service-discovery implemented. Local mvnw verify green: GatewayIntegrationTest balances 10 requests across 2 instances of restaurant-service (AC3), probes on the management port (AC4). Manual local run (jars as processes, no Docker): gateway registered UP in Eureka (AC1 registration); killed instance removed from the registry after 15.2 s, client-side worst case calculated ~21 s (AC2). Open: graceful deregistration on SIGTERM not verified (Windows host); discovery server not published only by Compose binding to 127.0.0.1, Compose not yet run (KI-021); awaiting PR"}]
     },
     {
       "id": "REQ-PLAT-003",
       "title": "Centralised configuration and secret management",
-      "module": "PLAT", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §8"], "businessRequirement": ["BR-10"],
       "description": "Configuration is centralised per environment and secrets are never hard-coded.",
       "technicalRequirement": "Spring Cloud Config Server (Git-backed) for non-secret config; secrets via environment variables locally and a secret manager (e.g. AWS Secrets Manager/Vault via External Secrets) in staging/production.",
@@ -382,18 +382,18 @@
       "assignedAgent": "DevOpsAgent", "assignedDeveloper": null,
       "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-01", "by": "DevOpsAgent", "reason": "Phase 4A: config-repo layout and secret handling designed in docs/13-deployment.md (v1.1.0)"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-01", "by": "DevOpsAgent", "reason": "Phase 4A: config-server (native backend, HTTP Basic, credentials from env with no defaults) implemented. Local mvnw verify green: ConfigServerApplicationTest serves profile-specific config to authenticated clients (AC2), rejects missing/wrong credentials, fails fast on missing location/directory/credentials (AC4); GatewayFailFastTest fails fast on unreachable config server and missing CORS origins (AC4). Config repo holds no secrets; .env.example holds placeholders only; secret scan is the existing gitleaks job (AC1). AC3 relies on the read-only config-repo mount in Compose, not yet run (KI-021). Git backend and secret manager are staging/prod concerns (Phases 9/11); awaiting PR"}]
     },
     {
       "id": "REQ-PLAT-004",
       "title": "Standard API contract: error format and OpenAPI documentation",
-      "module": "PLAT", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 2, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §37", "MP §38"], "businessRequirement": ["BR-10"],
       "description": "Consistent error responses and complete OpenAPI documentation for every API.",
       "technicalRequirement": "Shared error library with @RestControllerAdvice; springdoc-openapi per service, aggregated at the gateway; generated TypeScript clients for web/mobile.",
       "dependencies": [],
       "acceptanceCriteria": [
-        "AC1: Every error response is {success:false, code, message, timestamp, traceId, details?} with a stable machine-readable code.",
+        "AC1: Every error response is an RFC 9457 Problem Details document (application/problem+json) extended with a stable machine-readable code, correlationId, timestamp and, for validation failures, errors[] (docs/07-api-design.md §3).",
         "AC2: Stack traces, SQL, and internal class names never appear in responses (negative tests).",
         "AC3: Validation failures return 400 with field-level details.",
         "AC4: Each endpoint's OpenAPI entry documents method, request, response, validation, authentication, required permissions, error codes and an example.",
@@ -408,8 +408,11 @@
       "performanceRequirements": [],
       "assignedAgent": "BackendAgent", "assignedDeveloper": null,
       "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
-      "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "changeHistory": [
+        {"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"},
+        {"version": 2, "date": "2026-10-01", "by": "BackendAgent", "status": "ANALYSIS", "summary": "AC1 aligned with the approved API design: RFC 9457 Problem Details extended with code, correlationId, timestamp and errors[]", "reason": "Phase 4A found v1 AC1 conflicted with docs/07-api-design.md §3 (KI-019)", "impactReport": "docs/requirements/impact/IMPACT-0003.md", "previousValues": {"acceptanceCriteria.AC1": "AC1: Every error response is {success:false, code, message, timestamp, traceId, details?} with a stable machine-readable code."}, "approvedBy": "Project owner (IMPACT-0003 approved 2026-10-01)"}
+      ],
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 2, "from": null, "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "New version created (versioning rule); IMPACT-0003"}, {"version": 2, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "IMPACT-0003 approved (error format decision at the Phase 4A checkpoint)"}]
     },
     {
       "id": "REQ-PLAT-005",
@@ -2769,7 +2772,7 @@
     {
       "id": "REQ-OBS-001",
       "title": "Structured logging with correlation and PII masking",
-      "module": "OBS", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "OBS", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §39"], "businessRequirement": ["BR-10"],
       "description": "All services emit structured JSON logs carrying trace and correlation IDs, without secrets or PII. Scheduled in Phase 4 rather than Phase 20 (PROPOSED deviation, OQ-19).",
       "technicalRequirement": "Logback JSON encoder; MDC propagation; masking converters; central aggregation (Loki or ELK).",
@@ -2789,7 +2792,7 @@
       "assignedAgent": "DevOpsAgent", "assignedDeveloper": null,
       "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-01", "by": "DevOpsAgent", "reason": "Phase 4A: log schema and Loki/Alloy pipeline designed in docs/13-deployment.md (v1.1.0)"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-01", "by": "DevOpsAgent", "reason": "Phase 4A: common-observability implemented. Local mvnw verify green: StructuredLoggingIntegrationTest (JSON line with mandatory fields, masked values) (AC1), PiiMaskerTest (passwords, OTPs, JWTs, card numbers with Luhn, phone numbers) (AC2), correlation filter/interceptor tests, gateway reactive MDC. Loki 336h retention, Alloy and Grafana provisioning written for AC3 but not run (Docker unavailable, KI-021). Open: MDC propagation across async executors not yet tested (no async code yet); awaiting PR"}]
     },
     {
       "id": "REQ-OBS-002",
@@ -2844,7 +2847,7 @@
     {
       "id": "REQ-DEVOPS-001",
       "title": "Production Dockerfiles and Docker Compose developer environment",
-      "module": "DEVOPS", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "DEVOPS", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §44", "MP §45"], "businessRequirement": ["BR-10"],
       "description": "Every service is containerised to production standards and the platform runs locally with Docker Compose.",
       "technicalRequirement": "Multi-stage builds, non-root user, minimal JRE base, HEALTHCHECK, env config; Compose with profiles (infra, core, all, observability).",
@@ -2865,7 +2868,7 @@
       "assignedAgent": "DevOpsAgent", "assignedDeveloper": null,
       "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-01", "by": "DevOpsAgent", "reason": "Phase 4A: Compose profiles infra/media/platform/observability designed in docs/13-deployment.md (v1.1.0; ClamAV moved to optional media profile per owner decision)"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-01", "by": "DevOpsAgent", "reason": "Phase 4A: shared multi-stage backend/Dockerfile (temurin JRE alpine, uid 10001, HEALTHCHECK on liveness) (AC1), docker-compose.yml with PostgreSQL/PostGIS, Redis, Kafka, MinIO, Mailpit and observability profile (AC2, AC3), Postgres init creating one database plus owner/app roles per service, README one-command start (AC4). Evidence so far: docker compose config validates for all profiles and fails on a missing required variable. NOT EXECUTED: image build, compose up, smoke test, image scan (Docker engine unavailable, KI-021); MinIO uses frozen bitnamilegacy image (KI-018); awaiting PR"}]
     },
     {
       "id": "REQ-DEVOPS-002",

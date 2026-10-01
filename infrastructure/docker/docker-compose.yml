@@ -1,0 +1,288 @@
+# Local development environment (docs/13-deployment.md §2, REQ-DEVOPS-001).
+#
+#   docker compose --env-file .env -f infrastructure/docker/docker-compose.yml --profile infra --profile platform up -d
+#
+# Profiles: infra, media (ClamAV), platform, observability, all. Services added in later phases join
+# core / commerce / fulfilment / insights. Ports bind to 127.0.0.1 only. Every credential comes from
+# .env (copy .env.example); Compose refuses to start when a required one is missing.
+
+name: fooddelivery
+
+x-java-service: &java-service
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  mem_limit: 768m
+  environment: &java-env
+    FDP_ENVIRONMENT: local
+    TRACING_EXPORT_ENABLED: ${TRACING_EXPORT_ENABLED:-false}
+    OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+
+services:
+  # ---------------------------------------------------------------- infra
+  postgres:
+    image: postgis/postgis:17-3.6-alpine
+    profiles: [infra, all]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:?set POSTGRES_ADMIN_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?set POSTGRES_ADMIN_PASSWORD in .env}
+      LOCAL_DB_OWNER_PASSWORD: ${LOCAL_DB_OWNER_PASSWORD:?set LOCAL_DB_OWNER_PASSWORD in .env}
+      LOCAL_DB_APP_PASSWORD: ${LOCAL_DB_APP_PASSWORD:?set LOCAL_DB_APP_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:8.10.2-alpine
+    profiles: [infra, all]
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}", "--appendonly", "yes"]
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  kafka:
+    image: apache/kafka:4.3.1
+    profiles: [infra, all]
+    restart: unless-stopped
+    environment:
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID:-2v1UzX8NEUqyiXczbpMOvQ}
+      KAFKA_NODE_ID: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # Topics are declared by the owning services, as in staging and production.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    ports:
+      - "127.0.0.1:9092:9092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0
+    profiles: [infra, all]
+    restart: unless-stopped
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    ports:
+      - "127.0.0.1:8085:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  minio:
+    # The official minio/minio image is no longer published; this pinned Bitnami build is for local
+    # use only (KI-018). Staging and production use Amazon S3.
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5
+    profiles: [infra, all]
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER in .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+      MINIO_DEFAULT_BUCKETS: ${MINIO_BUCKETS:-fdp-media-local}
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio-data:/bitnami/minio/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:v1.31.3
+    profiles: [infra, all]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+  # ---------------------------------------------------------------- media (optional)
+  clamav:
+    image: clamav/clamav:1.5.4
+    profiles: [media, all]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3310:3310"
+    volumes:
+      - clamav-data:/var/lib/clamav
+
+  # ---------------------------------------------------------------- platform
+  config-server:
+    <<: *java-service
+    image: fooddelivery/config-server:local
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE: config-server
+        MANAGEMENT_PORT: "9888"
+    profiles: [platform, all]
+    environment:
+      <<: *java-env
+      CONFIG_BACKEND: native
+      CONFIG_REPO_LOCATION: file:/config-repo/
+      CONFIG_SERVER_USER: ${CONFIG_SERVER_USER:?set CONFIG_SERVER_USER in .env}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD:?set CONFIG_SERVER_PASSWORD in .env}
+    volumes:
+      - ../config-repo:/config-repo:ro
+    ports:
+      - "127.0.0.1:8888:8888"
+
+  service-discovery:
+    <<: *java-service
+    image: fooddelivery/service-discovery:local
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE: service-discovery
+        MANAGEMENT_PORT: "9761"
+    profiles: [platform, all]
+    ports:
+      - "127.0.0.1:8761:8761"
+
+  api-gateway:
+    <<: *java-service
+    image: fooddelivery/api-gateway:local
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE: api-gateway
+        MANAGEMENT_PORT: "9080"
+    profiles: [platform, all]
+    environment:
+      <<: *java-env
+      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_USER: ${CONFIG_SERVER_USER:?set CONFIG_SERVER_USER in .env}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD:?set CONFIG_SERVER_PASSWORD in .env}
+      EUREKA_URL: http://service-discovery:8761/eureka/
+    ports:
+      - "${GATEWAY_BIND_ADDRESS:-127.0.0.1}:8080:8080"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      service-discovery:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------- observability
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.161.0
+    profiles: [observability, all]
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./observability/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+    depends_on:
+      - tempo
+
+  tempo:
+    image: grafana/tempo:2.10.8
+    profiles: [observability, all]
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+
+  loki:
+    image: grafana/loki:3.7.8
+    profiles: [observability, all]
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./observability/loki.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+
+  alloy:
+    image: grafana/alloy:v1.20.1
+    profiles: [observability, all]
+    restart: unless-stopped
+    command: ["run", "--storage.path=/var/lib/alloy/data", "/etc/alloy/config.alloy"]
+    volumes:
+      - ./observability/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy/data
+    depends_on:
+      - loki
+
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    profiles: [observability, all]
+    restart: unless-stopped
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  grafana:
+    image: grafana/grafana:13.2.3
+    profiles: [observability, all]
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+volumes:
+  postgres-data:
+  redis-data:
+  kafka-data:
+  minio-data:
+  clamav-data:
+  tempo-data:
+  loki-data:
+  alloy-data:
+  prometheus-data:
+  grafana-data:

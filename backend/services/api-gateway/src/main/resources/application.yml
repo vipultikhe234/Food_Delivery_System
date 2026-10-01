@@ -1,0 +1,22 @@
+# Bootstrap settings only. Routes, CORS origins and the public allow-list come from config-server
+# (infrastructure/config-repo/api-gateway.yml); without them the gateway refuses to start.
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: ${CONFIG_IMPORT:optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}}
+  cloud:
+    config:
+      fail-fast: ${CONFIG_FAIL_FAST:true}
+      username: ${CONFIG_SERVER_USER:}
+      password: ${CONFIG_SERVER_PASSWORD:}
+  reactor:
+    context-propagation: auto
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:9080}

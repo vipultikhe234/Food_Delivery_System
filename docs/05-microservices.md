@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.1.0 |
-| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design) |
+| Version | 1.1.1 |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design; v1.1.1: §1.2 completed from the §3 API cards in Phase 4, approved at the Phase 4A checkpoint) |
 | Depends on | [04 System Architecture](04-system-architecture.md), [ADR-001](17-adr/ADR-001-microservices.md), [ADR-018](17-adr/ADR-018-restaurant-os-services.md) |
 
 This document defines each deployable: its responsibility, owned data, API surface, synchronous dependencies, events, scaling profile and the requirements it implements. Data models are in [06](06-database-design.md), endpoint conventions in [07](07-api-design.md), and the event catalogue in [08](08-event-driven-architecture.md).
@@ -55,6 +55,7 @@ Management/actuator ports are the service port + 1000 (e.g. 9088 for order-servi
 | `/api/v1/users/**`, `/api/v1/me/**` | user-service | Authenticated |
 | `/api/v1/restaurants/**` (GET) | restaurant-service | Public |
 | `/api/v1/restaurants/**` (write), `/api/v1/partner/restaurants/**` | restaurant-service | Authenticated |
+| `/api/v1/branches/**` other than `/branches/*/menu/**` (hours, availability, staff) | restaurant-service | Authenticated |
 | `/api/v1/branches/*/menu/**` (GET), `/api/v1/products/**` (GET) | catalog-service | Public |
 | `/api/v1/partner/menu/**`, `/api/v1/partner/catalog/**`, `/api/v1/partner/menus/**` | catalog-service | Authenticated, brand or outlet scope |
 | `/api/v1/partner/orders/**` | order-service | Authenticated staff |
@@ -69,6 +70,7 @@ Management/actuator ports are the service port + 1000 (e.g. 9088 for order-servi
 | `/api/v1/search/**`, `/api/v1/discovery/**` | search-service | Public |
 | `/api/v1/cart/**` | cart-service | Authenticated |
 | `/api/v1/coupons/**`, `/api/v1/offers/**` | promotion-service | Mixed |
+| `/api/v1/partner/offers/**` | promotion-service | Authenticated, brand or outlet scope |
 | `/api/v1/orders/**` | order-service | Authenticated |
 | `/api/v1/payments/**`, `/api/v1/refunds/**`, `/api/v1/wallet/**` | payment-service | Authenticated |
 | `/api/v1/webhooks/payments/**` | payment-service | Public + signature |
@@ -78,7 +80,8 @@ Management/actuator ports are the service port + 1000 (e.g. 9088 for order-servi
 | `/api/v1/reviews/**` | review-service | Mixed |
 | `/api/v1/recommendations/**` | recommendation-service | Mixed |
 | `/api/v1/assistant/**` | ai-service | Authenticated |
-| `/api/v1/admin/**` | admin-service (aggregation and complaints) or owning service (`/api/v1/admin/restaurants/**` → restaurant-service, etc.) | Admin permissions |
+| `/api/v1/complaints/**` | admin-service | Authenticated |
+| `/api/v1/admin/**` | admin-service (aggregation and complaints) or owning service (`/api/v1/admin/restaurants/**` → restaurant-service, etc.; full mapping in `infrastructure/config-repo/api-gateway.yml`) | Admin permissions |
 | `/api/v1/analytics/**` | analytics-service | Permission |
 | `/api/v1/audit/**` | audit-service | `AUDIT_VIEW` |
 | `/ws/**` | realtime-service | JWT at CONNECT |

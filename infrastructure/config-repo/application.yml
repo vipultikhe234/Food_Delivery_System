@@ -1,0 +1,47 @@
+# Shared, non-secret configuration served by config-server to every client service.
+# Secrets never go here: reference environment variables instead (docs/09-security.md §5).
+# Tracing export defaults (TRACING_EXPORT_ENABLED, OTLP_TRACES_ENDPOINT) live in common-observability,
+# so that config-server and service-discovery get them too.
+
+fdp:
+  environment: ${FDP_ENVIRONMENT:local}
+  security:
+    jwt:
+      # Issued by identity-service (Phase 5) and validated by the gateway and services (ADR-008).
+      issuer: fooddelivery-identity
+      audience: fooddelivery-api
+      jwks-uri: http://identity-service/.well-known/jwks.json
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    # Removal budget for a failed instance is 30 s (REQ-PLAT-002 AC2); see the server settings in
+    # service-discovery's application.yml before changing any of these.
+    registry-fetch-interval-seconds: 3
+    instance-info-replication-interval-seconds: 3
+    healthcheck:
+      enabled: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 3
+    lease-expiration-duration-in-seconds: 6
+
+spring:
+  cloud:
+    loadbalancer:
+      cache:
+        ttl: 3s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0

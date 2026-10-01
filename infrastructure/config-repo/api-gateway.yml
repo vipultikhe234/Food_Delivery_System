@@ -1,0 +1,177 @@
+# api-gateway routes, public allow-list and CORS (docs/05-microservices.md §1.2, REQ-PLAT-001).
+# Paths are forwarded unchanged: services serve /api/v1/... themselves. /internal/** is never routed.
+
+fdp:
+  gateway:
+    cors:
+      # Exact origins only; each environment overrides this list (api-gateway-<profile>.yml).
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177,http://localhost:5178}
+    # Everything not listed here needs a valid access token. "Mixed" routes in 05 §1.2 add their
+    # public GET paths in the phase that builds them.
+    public-paths:
+      - pattern: /api/v1/auth/**
+      - pattern: /.well-known/jwks.json
+        method: GET
+      - pattern: /api/v1/restaurants/**
+        method: GET
+      - pattern: /api/v1/branches/*/menu/**
+        method: GET
+      - pattern: /api/v1/products/**
+        method: GET
+      - pattern: /api/v1/search/**
+        method: GET
+      - pattern: /api/v1/discovery/**
+        method: GET
+      - pattern: /api/v1/serviceability/**
+        method: GET
+      - pattern: /api/v1/webhooks/payments/**
+        method: POST
+      # Signed QR token, verified by pos-service (POS_ARCHITECTURE §5)
+      - pattern: /api/v1/qr/**
+      # realtime-service authenticates the JWT at STOMP CONNECT (REQ-RT-001)
+      - pattern: /ws/**
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 2000
+            response-timeout: 10s
+          default-filters:
+            - name: RequestSize
+              args:
+                maxSize: 2MB
+          routes:
+            # Admin paths owned by a domain service come before the admin-service catch-all.
+            - id: identity-admin
+              uri: lb://identity-service
+              predicates:
+                - Path=/api/v1/admin/roles/**,/api/v1/admin/permissions/**,/api/v1/admin/users/*/roles/**
+            - id: restaurant-admin
+              uri: lb://restaurant-service
+              predicates:
+                - Path=/api/v1/admin/restaurants/**
+            - id: promotion-admin
+              uri: lb://promotion-service
+              predicates:
+                - Path=/api/v1/admin/coupons/**
+            - id: order-admin
+              uri: lb://order-service
+              predicates:
+                - Path=/api/v1/admin/orders/**
+            - id: payment-admin
+              uri: lb://payment-service
+              predicates:
+                - Path=/api/v1/admin/payments/**,/api/v1/admin/refunds/**,/api/v1/admin/reconciliation/**
+            - id: delivery-admin
+              uri: lb://delivery-service
+              predicates:
+                - Path=/api/v1/admin/partners/**,/api/v1/admin/assignments/**
+            - id: notification-admin
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/v1/admin/notification-templates/**
+            - id: review-admin
+              uri: lb://review-service
+              predicates:
+                - Path=/api/v1/admin/reviews/**
+            - id: admin
+              uri: lb://admin-service
+              predicates:
+                - Path=/api/v1/admin/**,/api/v1/complaints/**
+
+            - id: identity
+              uri: lb://identity-service
+              predicates:
+                - Path=/api/v1/auth/**,/.well-known/jwks.json
+            - id: user
+              uri: lb://user-service
+              predicates:
+                - Path=/api/v1/users/**,/api/v1/me/**
+            # Must stay before the restaurant route, which also matches /api/v1/branches/**.
+            - id: catalog
+              uri: lb://catalog-service
+              predicates:
+                - Path=/api/v1/branches/*/menu/**,/api/v1/products/**,/api/v1/partner/menu/**,/api/v1/partner/catalog/**,/api/v1/partner/menus/**
+            - id: restaurant
+              uri: lb://restaurant-service
+              predicates:
+                - Path=/api/v1/restaurants/**,/api/v1/branches/**,/api/v1/partner/restaurants/**,/api/v1/partner/devices/**,/api/v1/partner/locations/**
+            - id: media
+              uri: lb://media-service
+              predicates:
+                - Path=/api/v1/media/**
+            - id: search
+              uri: lb://search-service
+              predicates:
+                - Path=/api/v1/search/**,/api/v1/discovery/**
+            - id: cart
+              uri: lb://cart-service
+              predicates:
+                - Path=/api/v1/cart/**
+            - id: promotion
+              uri: lb://promotion-service
+              predicates:
+                - Path=/api/v1/coupons/**,/api/v1/offers/**,/api/v1/partner/offers/**
+            - id: order
+              uri: lb://order-service
+              predicates:
+                - Path=/api/v1/orders/**,/api/v1/partner/orders/**
+            - id: payment
+              uri: lb://payment-service
+              predicates:
+                - Path=/api/v1/payments/**,/api/v1/refunds/**,/api/v1/wallet/**,/api/v1/webhooks/payments/**
+            - id: delivery
+              uri: lb://delivery-service
+              predicates:
+                - Path=/api/v1/delivery/**
+            - id: location
+              uri: lb://location-service
+              predicates:
+                - Path=/api/v1/locations/**,/api/v1/serviceability/**
+            - id: notification
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/v1/notifications/**
+            - id: review
+              uri: lb://review-service
+              predicates:
+                - Path=/api/v1/reviews/**
+            - id: recommendation
+              uri: lb://recommendation-service
+              predicates:
+                - Path=/api/v1/recommendations/**
+            - id: ai
+              uri: lb://ai-service
+              predicates:
+                - Path=/api/v1/assistant/**
+            - id: analytics
+              uri: lb://analytics-service
+              predicates:
+                - Path=/api/v1/analytics/**
+            - id: audit
+              uri: lb://audit-service
+              predicates:
+                - Path=/api/v1/audit/**
+            - id: realtime
+              uri: lb:ws://realtime-service
+              predicates:
+                - Path=/ws/**
+            - id: pos
+              uri: lb://pos-service
+              predicates:
+                - Path=/api/v1/pos/**,/api/v1/qr/**
+            - id: kitchen
+              uri: lb://kitchen-service
+              predicates:
+                - Path=/api/v1/kitchen/**
+            - id: inventory
+              uri: lb://inventory-service
+              predicates:
+                - Path=/api/v1/inventory/**,/api/v1/recipes/**
+            - id: procurement
+              uri: lb://procurement-service
+              predicates:
+                - Path=/api/v1/procurement/**

@@ -1,0 +1,5 @@
+# 10 % head sampling; the collector keeps all errors and slow traces (docs/12-observability.md §3).
+management:
+  tracing:
+    sampling:
+      probability: 0.1
