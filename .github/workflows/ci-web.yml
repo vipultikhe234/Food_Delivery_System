@@ -1,0 +1,52 @@
+name: ci-web
+
+on:
+  pull_request:
+    paths:
+      - "web/**"
+      - "mobile/**"
+      - "ai-agents/**"
+      - "tools/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - ".github/workflows/ci-web.yml"
+  push:
+    branches: [main, develop]
+    paths:
+      - "web/**"
+      - "mobile/**"
+      - "ai-agents/**"
+      - "tools/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - ".github/workflows/ci-web.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Lint, test and build
+        run: pnpm turbo run lint test build

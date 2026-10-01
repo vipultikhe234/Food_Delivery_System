@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fooddelivery.example/schemas/requirements.schema.json",
+  "title": "Food Delivery Platform requirements",
+  "description": "Structure of docs/requirements/requirements.json (REQ-RMS-001). Cross-field rules (transitions, history immutability, references) are checked by tools/requirements-validator.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "document",
+    "priorityLegend",
+    "statusModel",
+    "businessRequirements",
+    "actors",
+    "modules",
+    "requirements",
+    "nonFunctionalRequirements",
+    "phaseOrderNotes",
+    "roadmap",
+    "openQuestions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "document": {
+      "type": "object",
+      "required": ["project", "projectCode", "documentVersion", "stage", "status", "createdDate", "updatedDate", "createdBy"],
+      "properties": {
+        "project": { "type": "string" },
+        "projectCode": { "type": "string" },
+        "documentVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "stage": { "type": "string" },
+        "status": { "$ref": "#/$defs/status" },
+        "createdDate": { "$ref": "#/$defs/date" },
+        "updatedDate": { "$ref": "#/$defs/date" },
+        "createdBy": { "type": "string" },
+        "approvedBy": { "type": ["string", "null"] },
+        "approvedDate": { "oneOf": [{ "$ref": "#/$defs/date" }, { "type": "null" }] }
+      }
+    },
+    "priorityLegend": {
+      "type": "object",
+      "required": ["P0", "P1", "P2"],
+      "additionalProperties": { "type": "string" }
+    },
+    "statusModel": {
+      "type": "object",
+      "required": ["allowedStatuses", "transitions", "evidenceGates", "versioningRules"],
+      "additionalProperties": false,
+      "properties": {
+        "allowedStatuses": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/status" },
+          "uniqueItems": true
+        },
+        "transitions": {
+          "type": "object",
+          "additionalProperties": { "type": "array", "items": { "type": "string" } }
+        },
+        "evidenceGates": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[A-Z_]+->[A-Z_]+$" },
+          "additionalProperties": { "type": "string" }
+        },
+        "versioningRules": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "businessRequirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "source"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^BR-\\d{2}$" },
+          "title": { "type": "string", "minLength": 1 },
+          "source": { "$ref": "#/$defs/sources" }
+        }
+      }
+    },
+    "actors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "description"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^ACT-[A-Z]+(-[A-Z]+)*$" },
+          "type": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "name", "owner"],
+        "properties": {
+          "code": { "type": "string", "pattern": "^[A-Z]+$" },
+          "name": { "type": "string" },
+          "owner": { "type": "string" }
+        }
+      }
+    },
+    "requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/requirement" }
+    },
+    "nonFunctionalRequirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "requirement", "target", "measurement", "priority", "status", "verified", "source", "version"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^NFR-[A-Z0-9]+-\\d{3}$" },
+          "category": { "type": "string" },
+          "requirement": { "type": "string", "minLength": 1 },
+          "target": { "type": "string", "minLength": 1 },
+          "measurement": { "type": "string" },
+          "verificationPhase": { "type": ["integer", "null"] },
+          "priority": { "$ref": "#/$defs/priority" },
+          "status": { "$ref": "#/$defs/status" },
+          "verified": { "type": "boolean" },
+          "source": { "$ref": "#/$defs/sources" },
+          "version": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "phaseOrderNotes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["requirement", "dependsOn", "resolution"],
+        "properties": {
+          "requirement": { "$ref": "#/$defs/reqIdList" },
+          "dependsOn": { "$ref": "#/$defs/reqIdList" },
+          "resolution": { "type": "string" }
+        }
+      }
+    },
+    "roadmap": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["release", "name"],
+        "properties": {
+          "release": { "type": "string" },
+          "name": { "type": "string" },
+          "phases": { "type": "array", "items": { "type": "integer" } }
+        }
+      }
+    },
+    "openQuestions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "question", "recommendation", "decision"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^OQ-\\d{2}$" },
+          "question": { "type": "string" },
+          "recommendation": { "type": "string" },
+          "decision": { "type": ["string", "null"] },
+          "blocksPhase": { "type": ["integer", "null"] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "status": {
+      "enum": ["DRAFT", "ANALYSIS", "APPROVED", "DESIGN", "DEVELOPMENT", "CODE_REVIEW", "TESTING", "BUG_FOUND", "REWORK", "UAT", "READY_FOR_RELEASE", "RELEASED", "COMPLETED", "BLOCKED", "CANCELLED"]
+    },
+    "priority": { "enum": ["P0", "P1", "P2"] },
+    "reqId": { "type": "string", "pattern": "^REQ-[A-Z]+-\\d{3}$" },
+    "reqIdList": { "type": "string", "pattern": "^REQ-[A-Z]+-\\d{3}( / REQ-[A-Z]+-\\d{3})*$" },
+    "sources": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "stringList": { "type": "array", "items": { "type": "string" } },
+    "requirement": {
+      "type": "object",
+      "required": [
+        "id", "title", "module", "version", "status", "priority", "phase", "targetRelease", "source",
+        "businessRequirement", "description", "technicalRequirement", "dependencies", "acceptanceCriteria",
+        "apiRequirements", "databaseRequirements", "uiRequirements", "mobileRequirements", "testingRequirements",
+        "securityRequirements", "performanceRequirements", "assignedAgent", "assignedDeveloper", "createdBy",
+        "createdDate", "updatedDate", "changeHistory", "statusHistory"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/reqId" },
+        "title": { "type": "string", "minLength": 3 },
+        "module": { "type": "string", "pattern": "^[A-Z]+$" },
+        "version": { "type": "integer", "minimum": 1 },
+        "status": { "$ref": "#/$defs/status" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "phase": { "type": ["integer", "null"], "minimum": 1, "maximum": 24 },
+        "targetRelease": { "type": ["string", "null"] },
+        "source": { "$ref": "#/$defs/sources" },
+        "businessRequirement": { "type": "array", "items": { "type": "string", "pattern": "^BR-\\d{2}$" } },
+        "description": { "type": "string", "minLength": 1 },
+        "technicalRequirement": { "type": "string", "minLength": 1 },
+        "dependencies": { "type": "array", "items": { "$ref": "#/$defs/reqId" }, "uniqueItems": true },
+        "acceptanceCriteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^AC\\d+( \\([^)]*\\))?: .+" }
+        },
+        "apiRequirements": { "$ref": "#/$defs/stringList" },
+        "databaseRequirements": { "$ref": "#/$defs/stringList" },
+        "uiRequirements": { "$ref": "#/$defs/stringList" },
+        "mobileRequirements": { "$ref": "#/$defs/stringList" },
+        "testingRequirements": { "$ref": "#/$defs/stringList" },
+        "securityRequirements": { "$ref": "#/$defs/stringList" },
+        "performanceRequirements": { "$ref": "#/$defs/stringList" },
+        "assignedAgent": { "type": ["string", "null"] },
+        "assignedDeveloper": { "type": ["string", "null"] },
+        "createdBy": { "type": "string" },
+        "createdDate": { "$ref": "#/$defs/date" },
+        "updatedDate": { "$ref": "#/$defs/date" },
+        "changeHistory": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["version", "date", "by", "summary"],
+            "properties": {
+              "version": { "type": "integer", "minimum": 1 },
+              "date": { "$ref": "#/$defs/date" },
+              "by": { "type": "string" },
+              "summary": { "type": "string" },
+              "reason": { "type": "string" },
+              "impactReport": { "type": "string" },
+              "previousValues": { "type": "object" },
+              "approvedBy": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "statusHistory": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["version", "from", "to", "date", "by", "reason"],
+            "properties": {
+              "version": { "type": "integer", "minimum": 1 },
+              "from": { "oneOf": [{ "$ref": "#/$defs/status" }, { "type": "null" }] },
+              "to": { "$ref": "#/$defs/status" },
+              "date": { "$ref": "#/$defs/date" },
+              "by": { "type": "string" },
+              "reason": { "type": "string" },
+              "evidence": {
+                "type": "object",
+                "required": ["runId", "commit"],
+                "properties": {
+                  "runId": { "type": "string", "minLength": 1 },
+                  "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+                  "environment": { "type": "string" },
+                  "executed": { "type": "integer", "minimum": 0 },
+                  "passed": { "type": "integer", "minimum": 0 },
+                  "failed": { "type": "integer", "minimum": 0 },
+                  "skipped": { "type": "integer", "minimum": 0 },
+                  "reportUrl": { "type": "string" },
+                  "pullRequest": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

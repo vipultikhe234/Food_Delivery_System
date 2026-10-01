@@ -1,0 +1,72 @@
+name: ci-requirements
+
+on:
+  pull_request:
+    paths:
+      - "docs/requirements/**"
+      - "tools/requirements-validator/**"
+      - ".github/workflows/ci-requirements.yml"
+  push:
+    branches: [main, develop]
+    paths:
+      - "docs/requirements/**"
+      - "tools/requirements-validator/**"
+      - ".github/workflows/ci-requirements.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Validator unit tests
+        run: pnpm --filter @fdp/requirements-validator test
+
+      # History immutability is checked against the target branch (PR) or the previous commit (push)
+      - name: Resolve base version of requirements.json
+        id: base
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          base_rev=""
+          if [ -n "$BASE_REF" ]; then
+            base_rev="origin/$BASE_REF"
+          elif [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            base_rev="$BEFORE_SHA"
+          fi
+          if [ -n "$base_rev" ] && git show "$base_rev:docs/requirements/requirements.json" > "$RUNNER_TEMP/base-requirements.json" 2>/dev/null; then
+            echo "file=$RUNNER_TEMP/base-requirements.json" >> "$GITHUB_OUTPUT"
+            echo "Comparing against $base_rev"
+          else
+            echo "No base version found; history immutability check skipped"
+          fi
+
+      - name: Validate requirements.json
+        env:
+          BASE_FILE: ${{ steps.base.outputs.file }}
+        run: |
+          if [ -n "$BASE_FILE" ]; then
+            node tools/requirements-validator/src/cli.mjs --base "$BASE_FILE"
+          else
+            node tools/requirements-validator/src/cli.mjs
+          fi

@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+    target-branch: develop
+    commit-message:
+      prefix: build
+      include: scope
+    groups:
+      spring:
+        patterns: ["org.springframework*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: develop
+    commit-message:
+      prefix: build
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: develop
+    commit-message:
+      prefix: ci

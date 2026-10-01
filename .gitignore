@@ -1,0 +1,51 @@
+# Secrets and local environment (never commit; see .env.example)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+
+# Java / Maven
+target/
+*.class
+hs_err_pid*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# Node / web / mobile
+node_modules/
+.pnpm-store/
+.turbo/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+playwright-report/
+test-results/
+blob-report/
+android/app/build/
+ios/App/Pods/
+
+# IDEs and OS
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+
+# Logs and reports
+*.log
+logs/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example

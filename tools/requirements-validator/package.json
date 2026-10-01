@@ -1,0 +1,17 @@
+{
+  "name": "@fdp/requirements-validator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Validates docs/requirements/requirements.json: schema, references, status transitions, evidence gates and history immutability (ADR-012, REQ-RMS-001..003)",
+  "type": "module",
+  "bin": {
+    "validate-requirements": "./src/cli.mjs"
+  },
+  "scripts": {
+    "validate": "node src/cli.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "ajv": "8.20.0"
+  }
+}

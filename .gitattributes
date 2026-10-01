@@ -1,0 +1,15 @@
+* text=auto
+
+*.sh     text eol=lf
+mvnw     text eol=lf
+.githooks/* text eol=lf
+*.cmd    text eol=crlf
+*.bat    text eol=crlf
+
+*.jpg    binary
+*.jpeg   binary
+*.png    binary
+*.gif    binary
+*.webp   binary
+*.jar    binary
+*.zip    binary
