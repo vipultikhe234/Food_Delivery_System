@@ -7,6 +7,8 @@
 | Depends on | [ADR-002](17-adr/ADR-002-kafka.md), [ADR-005](17-adr/ADR-005-outbox-pattern.md), [ADR-007](17-adr/ADR-007-orchestrated-saga.md), [order-state-machine](architecture/order-state-machine.md) |
 | Requirements | REQ-PLAT-005, REQ-PLAT-006, REQ-ORDER-005, NFR-REL-001, NFR-CONS-003 |
 
+> **Pending change (Proposed 2026-10-01):** the Restaurant OS design adds topics `catalog.events.v1` (replacing the never-built `menu.events.v1`), `pos.events.v1`, `kitchen.events.v1`, `inventory.events.v1` and `procurement.events.v1`, and new order, payment and restaurant events ([restaurant-os README §3](architecture/restaurant-os/README.md)). This document is updated when that design is approved.
+
 ---
 
 ## 1. Envelope

@@ -64,13 +64,13 @@ flowchart LR
     POS -- coupons --> PRO
     ORD -- price-check --> CAT
     PROC -- returns --> INV
-    KIT -. kitchen.events .-> RT
-    POS -. pos.events .-> RT
-    ORD -. order.events .-> KIT & INV & POS
-    KIT -. kitchen.events .-> ORD & INV
-    INV -. inventory.events .-> CAT & PROC
-    PROC -. procurement.events .-> INV
-    POS & KIT & INV & PROC -. events .-> AN & AU
+    KIT -.->|kitchen events| RT
+    POS -.->|pos events| RT
+    ORD -.->|order events| KIT & INV & POS
+    KIT -.->|kitchen events| ORD & INV
+    INV -.->|inventory events| CAT & PROC
+    PROC -.->|procurement events| INV
+    POS & KIT & INV & PROC -.->|events| AN & AU
 ```
 
 Solid arrows are synchronous REST calls (internal, service token). Dotted arrows are Kafka events.
@@ -165,6 +165,7 @@ Consumer legend: ORD order, POS pos, KIT kitchen, INV inventory, PROC procuremen
 | catalog | `MenuItemAvailabilityChanged` (existing) | branchId, menuItemId, productId, available, cause (`MANUAL`/`INVENTORY`/`SCHEDULE`) | SRCH, CART, RT (POS greys items out) | REQ-MENU-009 |
 | order | `OrderCreated` (changed: adds `orderSource`, `orderType`, `tableSessionId`, `paymentMode`, `menuVersion`, `channel`) | as before + new fields | AN, NOT, POS | REQ-ORDER-007 |
 | order | `KitchenRoundSubmitted` (new) | orderId, round, orderType, orderSource, tableLabel?, lines[] (orderLineId, menuItemId, productId, variant, addons, comboParentLineId, quantity, stationId, prepMinutes, priority, notes) | KIT | REQ-KOT-002, REQ-KOT-006 |
+| order | `OrderLinesAdded` (new) | orderId, lines[] (as above, with fireStatus) | POS (bill projection) | REQ-POS-001 AC4, REQ-KOT-006 |
 | order | `OrderLineVoided` (new) | orderId, orderLineId, voidedQuantity, reasonCode, actorId | KIT (modification KOT), POS (bill projection) | REQ-POS-005 |
 | order | `OrderServed`, `OrderHandedOver` (new) | orderId, at | POS, RT, AN | REQ-ORDER-008 |
 | order | `OrderCompleted` (new) | orderId, orderType, branchId, placedAt, completedAt, lines[] (orderLineId, productId, variantId, addonIds[], comboSlotLines[], netQuantity) | INV (consumption), AN, REV, AI | REQ-ORDER-008, REQ-INV-004 |
@@ -176,6 +177,8 @@ Consumer legend: ORD order, POS pos, KIT kitchen, INV inventory, PROC procuremen
 | pos | `BillSettled` | billId, orderIds[], payments[] (paymentId, method, amount) | ORD (completion), RT, AN | REQ-BILL-003 |
 | pos | `CreditNoteIssued` | creditNoteId, billId, number, amount, reasonCode | AN, AU | REQ-BILL-007 |
 | pos | `QrSessionStarted`, `QrOrderSubmitted` | qrSessionId, tableSessionId, guestRef, orderId? | RT, AN | REQ-QR-002/005 |
+| pos | `TableSessionStatusChanged` (new) | tableSessionId, status (`OPEN`/`BILLING`/`CLOSED`/`MERGED`/`VOIDED`), version | ORD (session projection for T27/T33 guards) | REQ-POS-007 |
+| pos | `PosSettingsChanged` (new) | branchId, changed settings (no secrets) | KIT (late thresholds), ORD (QR auto-accept, acceptance window) | REQ-BILL-009, REQ-QR-005 |
 | kitchen | `KOTCreated` | kotId, kotNumber, orderId, round, stationId, type (`ORIGINAL`/`MODIFICATION`), items[], priority, version | RT, AN | REQ-KOT-002/003 |
 | kitchen | `KOTUpdated` | kotId, status, itemStatuses[], version, actor | RT, AN (prep times) | REQ-KDS-003 |
 | kitchen | `KOTCancelled` | kotId, orderId, reasonCode, **reachedPreparing**, items[] | RT, INV (waste when reachedPreparing) | REQ-KOT-004, ROS-OQ-09 |
@@ -193,7 +196,7 @@ Consumer legend: ORD order, POS pos, KIT kitchen, INV inventory, PROC procuremen
 | payment | `PaymentCompleted` (changed: `referenceType` `ORDER`/`BILL`, `method`, `attestedBy?`) | as before + new fields | ORD (ORDER), POS (BILL), AN | REQ-PAYMENT-006 |
 | restaurant | `LocationCreated`, `LocationUpdated`, `DeviceRegistered`, `DeviceRevoked`, `StaffAssignmentChanged` | ids, type, branchId | INV (locations), ID (revocation), KIT (displays) | REQ-OUTLET-001/004/007 |
 
-Events not listed in the requirement documents and added by this design: `KitchenRoundSubmitted` (named in REQ-KOT-002 AC3, producer fixed here), `OrderLineVoided`, `OrderKitchenStatusChanged`, `StockLevelRestored`, `ProductStockAvailabilityChanged`, `StockReceiptPosted`, `LocationCreated`/`LocationUpdated`, `DeviceRegistered`/`DeviceRevoked`, `StaffAssignmentChanged`. They are listed in decision D-11.
+Events not listed in the requirement documents and added by this design: `KitchenRoundSubmitted` (named in REQ-KOT-002 AC3, producer fixed here), `OrderLinesAdded`, `OrderLineVoided`, `TableSessionStatusChanged`, `PosSettingsChanged`, `OrderKitchenStatusChanged`, `StockLevelRestored`, `ProductStockAvailabilityChanged`, `StockReceiptPosted`, `LocationCreated`/`LocationUpdated`, `DeviceRegistered`/`DeviceRevoked`, `StaffAssignmentChanged`. They are listed in decision D-11.
 
 ---
 
@@ -202,7 +205,7 @@ Events not listed in the requirement documents and added by this design: `Kitche
 - **Tenant column.** The brand is the existing `restaurants` row. Every tenant-owned table in catalog, order, pos, kitchen, inventory and procurement has `restaurant_id uuid NOT NULL` (the brand ID). Code and APIs keep `restaurant` and `branch` (ROS-OQ-18); the UI says "Brand" and "Outlet".
 - **Application guard.** `common-persistence` provides a `TenantContext` filled from the JWT (requests) or from the event's `restaurantId` (consumers). Tenant-owned entities use Hibernate's `@TenantId`, so every query is filtered and every insert stamped without per-query code.
 - **Database guard.** PostgreSQL row-level security on the same tables: `USING (restaurant_id = current_setting('app.restaurant_id')::uuid)`, with `FORCE ROW LEVEL SECURITY`. The runtime role `<service>_app` isn't the table owner, so the policy applies to it. `common-persistence` runs `SET LOCAL app.restaurant_id` at the start of every transaction. A transaction without a tenant sees no rows.
-- **Platform jobs** (nightly reconciliation, report generation) iterate per brand and set the context for each brand. No runtime role has `BYPASSRLS`.
+- **Platform jobs** (nightly reconciliation, report generation) iterate per brand and set the context for each brand. No runtime role has `BYPASSRLS`; only the Flyway owner role does, for data migrations.
 - **Outlet scope.** `AccessPolicy` components check `branchId ∈ scopes` (or a brand scope) for every outlet-level action. IDs in the request body are never trusted for scope.
 - **Cross-tenant responses** return `404 NOT_FOUND` (REQ-OUTLET-003 AC2).
 
@@ -303,7 +306,7 @@ These choices go beyond what the requirements fix. Each one is explained in the 
 | D-01 | The tenant column is `restaurant_id` (= brand ID) in every tenant-owned table, matching the existing naming (ROS-OQ-18 spirit) | §4, ADR-019 |
 | D-02 | Tenant isolation = Hibernate `@TenantId` guard **plus** PostgreSQL row-level security as defence in depth | §4, ADR-019 |
 | D-03 | Dine-in: one staff order per (table session, source) that grows in **rounds**; every QR submission is its own order | ORDER §3 |
-| D-04 | In-store lifecycles reuse the approved states (`READY_FOR_PICKUP` is labelled "Ready" in store) and add `SERVED`, `HANDED_OVER`, `COMPLETED`; new transitions T27–T35; DELIVERED → COMPLETED in the same transaction as delivery | ORDER §4 |
+| D-04 | In-store lifecycles reuse the approved states (`READY_FOR_PICKUP` is labelled "Ready" in store) and add `SERVED`, `HANDED_OVER`, `COMPLETED`; new transitions T27–T34 and extended T8, T9, T11, T13; DELIVERED → COMPLETED in the same transaction as delivery | ORDER §4 |
 | D-05 | kitchen-service generates KOTs only from `KitchenRoundSubmitted` and reports progress with `OrderKitchenStatusChanged`; order-service owns the order status | KITCHEN §4, ORDER §4 |
 | D-06 | For in-store orders the **bill** is the financial record (discounts, charges, tax summary, invoice). Bills are finalised (invoice number issued) at the first payment or an explicit "Finalise"; before that, only a pro-forma estimate can be printed | POS §6 |
 | D-07 | Invoice numbers: `{outletCode≤4}-{FY yy yy}-{seq 6}`, at most 16 characters; allocated by a counter row updated inside the finalisation transaction (gap-free) | POS §6.3 |
@@ -320,3 +323,6 @@ These choices go beyond what the requirements fix. Each one is explained in the 
 | D-18 | A shared, framework-free pricing library `backend/platform/pricing` used by catalog, cart and pos | ADR-021 |
 | D-19 | Ports 8102–8105 for the new services | §2 |
 | D-20 | Topic keys as in §3.1 | §3.1 |
+| D-21 | Channel derivation from order type and source; an outlet's default menu is enabled for DELIVERY, WEBSITE and MOBILE together, and the public menu API defaults to DELIVERY (keeps REQ-MENU-001..004 working) | ORDER §2, CATALOG §5 |
+| D-22 | Split by item or customer creates child bills with their own invoices; split by amount keeps **one** invoice and divides payment into shares | POS §6.5 |
+| D-23 | When an order is cancelled while one of its KOTs is already READY, the KOT keeps status READY (REQ-KDS-003 AC1 forbids READY → CANCELLED), gets a cancellation record and alert, and leaves the board after acknowledgement; waste is posted. The alternative, allowing READY → CANCELLED, would need a change to REQ-KDS-003 | KITCHEN §5 |

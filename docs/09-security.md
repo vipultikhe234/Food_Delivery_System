@@ -8,6 +8,8 @@
 | Requirements | REQ-AUTH-001..005, REQ-SEC-001..003, REQ-AUDIT-001, REQ-PAYMENT-002, REQ-AI-002/003, REQ-DEVAGENT-002, REQ-QA-004, NFR-SEC-001..003 |
 | Reference standard | OWASP ASVS 4.x Level 2 (NFR-SEC-001, proposed), OWASP Top 10 2021, OWASP API Security Top 10 2023 |
 
+> **Pending change (Proposed 2026-10-01):** the Restaurant OS design adds roles CASHIER, CAPTAIN, KITCHEN_STAFF and INVENTORY_MANAGER, new permissions, device credentials, staff PINs, QR guest tokens and tenant isolation ([restaurant-os README §4–5](architecture/restaurant-os/README.md), [ADR-019](17-adr/ADR-019-tenant-isolation.md)). This document is updated when that design is approved.
+
 ---
 
 ## 1. Threat model (summary)

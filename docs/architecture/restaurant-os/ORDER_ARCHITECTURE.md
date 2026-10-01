@@ -160,7 +160,7 @@ Actor types are as approved, plus `RESTAURANT` now includes CASHIER and CAPTAIN 
 | Change | Allowed in | Effect | Event |
 |---|---|---|---|
 | Round fired | RESTAURANT_ACCEPTED, PREPARING (DINE_IN staff orders) | New round, no status change | `KitchenRoundSubmitted` |
-| Lines added (held) | CONFIRMED … SERVED (DINE_IN staff orders), bill not finalised | `fire_status = HELD` | — (bill projection reads `OrderLinesAdded` on pos-service's internal read) |
+| Lines added (held or fired) | CONFIRMED … SERVED (DINE_IN staff orders), bill not finalised | New lines; `fire_status = HELD` when not fired | `OrderLinesAdded` (pos-service bill projection); plus `KitchenRoundSubmitted` when fired |
 | Line voided | CONFIRMED … READY_FOR_PICKUP (in-store types) | `voided_quantity` += n | `OrderLineVoided` |
 | Settlement recorded | Any non-terminal in-store state | `settled_at` = now; T28/T30 or T31 run if their other condition already holds | — |
 | Partial refund after completion | COMPLETED | As the approved "partial refund after delivery": status stays, refund tracked by payment-service (online) or credit note (bill) | `OrderRefundPending` / `OrderRefunded` (online) |
@@ -275,6 +275,7 @@ All write endpoints need `Idempotency-Key` (REQ-PLAT-006). The POS sends a new k
 | Method and path | Permission | Purpose | Notes |
 |---|---|---|---|
 | `POST /api/v1/partner/orders` | POS_ORDER | Create an in-store or phone order | Body below. 201 with the priced order. Source from the token (§2) |
+| `POST /api/v1/partner/orders/price-preview` | POS_ORDER | Price lines without creating an order (held-order resume, REQ-POS-003 AC2) | Same body as create; no Idempotency-Key; nothing persisted |
 | `POST /api/v1/partner/orders/{id}/lines` | POS_ORDER | Add lines (new round, or held with `fire=false`) | DINE_IN staff orders only. `409 ROUND_NOT_ALLOWED` otherwise |
 | `POST /api/v1/partner/orders/{id}/fire` | POS_ORDER | Fire held lines `{orderItemIds[]}` | New round |
 | `POST /api/v1/partner/orders/{id}/items/{itemId}/void` | POS_ORDER / POS_VOID | `{quantity, reasonCode, reasonText}` | Permission depends on KOT status |
@@ -340,11 +341,11 @@ sequenceDiagram
     ORD->>ORD: guard: session OPEN, bill not finalised
     ORD->>ORD: tx: items round 2, SERVED→RESTAURANT_ACCEPTED (T33), outbox
     ORD-->>CAP: 200
-    ORD--)K: KitchenRoundSubmitted(round 2)
+    ORD--)K: OrderLinesAdded, KitchenRoundSubmitted(round 2)
     K--)KIT: create KOTs for round 2 only
-    K--)POS: bill projection adds round 2 lines (running total)
+    K--)POS: bill projection adds the new lines (running total)
     KIT--)K: OrderKitchenStatusChanged(PREPARING … READY)
-    K--)ORD: T11, T13; then captain marks served (T28)
+    K--)ORD: T11, T13, then captain marks served (T28)
 ```
 
 ### 8.3 Completion triggers consumption
@@ -356,7 +357,7 @@ sequenceDiagram
     participant ORD as order-service
     participant INV as inventory-service
     POS--)K: BillSettled(billId, orderIds)
-    K--)ORD: for each order: settled_at; T28 if READY; T30
+    K--)ORD: for each order: settled_at, T28 if READY, then T30
     ORD--)K: OrderCompleted(lines with net quantities, placedAt)
     K--)INV: consume idempotently (orderId, orderItemId, recipeVersionId)
     INV--)K: InventoryConsumed
@@ -373,5 +374,5 @@ sequenceDiagram
 3. Idempotent submit: two parallel requests with the same key create one order (REQ-POS-001 AC3).
 4. Database guard: raw SQL updates and deletes on a locked order fail (REQ-ORDER-009 AC3).
 5. Round and settle race (§9).
-6. Contract tests for `OrderCreated` (new fields), `KitchenRoundSubmitted`, `OrderLineVoided`, `OrderServed`, `OrderHandedOver`, `OrderCompleted`.
+6. Contract tests for `OrderCreated` (new fields), `OrderLinesAdded`, `KitchenRoundSubmitted`, `OrderLineVoided`, `OrderServed`, `OrderHandedOver`, `OrderCompleted`.
 7. Regression: the approved delivery flow T1–T26 still passes, with T32 added after T22.

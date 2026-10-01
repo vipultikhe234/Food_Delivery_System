@@ -7,6 +7,8 @@
 | Owner | order-service |
 | Requirements | REQ-ORDER-002 v2, REQ-ORDER-003, REQ-ORDER-004, REQ-ORDER-005, REQ-PAYMENT-004, REQ-PAYMENT-005, REQ-DELIVERY-003/004, REQ-RT-003 v2 |
 
+> **Pending change (Proposed 2026-10-01):** REQ-ORDER-002 v3 (IMPACT-0002) adds lifecycles per order type, the states `SERVED`, `HANDED_OVER` and `COMPLETED`, and transitions T27–T34 ([ORDER_ARCHITECTURE §4](restaurant-os/ORDER_ARCHITECTURE.md#4-lifecycles-per-order-type-req-order-002-v3-req-order-008)). This document becomes v2.0.0 when that design is approved.
+
 The state machine lives in the order-service `domain` layer as an enum plus an explicit transition table. Every transition:
 
 - is checked against the table (otherwise `409 INVALID_ORDER_TRANSITION`)

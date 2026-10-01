@@ -21,6 +21,10 @@ Each ADR records one significant decision: its context, the decision, its conseq
 | [ADR-015](ADR-015-external-provider-adapters.md) | Ports and adapters for external providers; initial providers | Accepted | 2026-10-01 |
 | [ADR-016](ADR-016-aws.md) | AWS as target cloud, cost-minimised for portfolio context | Accepted | 2026-10-01 |
 | [ADR-017](ADR-017-typescript-agents.md) | TypeScript for DevAgent and TestAgent | Accepted | 2026-10-01 |
+| [ADR-018](ADR-018-restaurant-os-services.md) | Restaurant OS service boundaries (25 deployables; amends ADR-001) | Proposed | 2026-10-01 |
+| [ADR-019](ADR-019-tenant-isolation.md) | Tenant isolation: application guard + PostgreSQL row-level security | Proposed | 2026-10-01 |
+| [ADR-020](ADR-020-inventory-ledger-costing.md) | Immutable stock ledger, idempotent consumption, configurable costing | Proposed | 2026-10-01 |
+| [ADR-021](ADR-021-shared-pricing-library.md) | Shared, framework-free pricing library | Proposed | 2026-10-01 |
 
 ## Template
 

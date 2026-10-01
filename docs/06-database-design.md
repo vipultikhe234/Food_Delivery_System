@@ -9,6 +9,8 @@
 
 This is the logical design. The physical DDL is written as Flyway migrations in each service during its implementation phase (`src/main/resources/db/migration/V<n>__<desc>.sql`). Column lists show the important columns. Base columns (§1.2) are implied for every table marked **[B]**.
 
+> **Pending change (Proposed 2026-10-01):** the Restaurant OS design replaces §2.4 `menu_db` with `catalog_db`, extends §2.8 `order_db`, adds `pos_db`, `kitchen_db`, `inventory_db` and `procurement_db`, and adds a `restaurant_id` tenant column with row-level security ([restaurant-os architecture](architecture/restaurant-os/README.md), [ADR-019](17-adr/ADR-019-tenant-isolation.md)). This document is updated when that design is approved.
+
 ---
 
 ## 1. Conventions

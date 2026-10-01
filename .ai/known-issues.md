@@ -2,6 +2,7 @@
 
 | ID | Item | Impact | Owner / next step |
 |---|---|---|---|
+| KI-016 | Bill computation order (discounts before tax, taxable packaging and service charge, round-off last; ROS design D-15) is based on the usual GST treatment but not confirmed by a tax adviser | In-store totals and invoices could be wrong for some tax situations | Project owner to confirm with a tax adviser before Phase 13A UAT; a change is one pricing-library change (ADR-021) |
 | KI-014 | Branch protection for `main`/`develop` and CODEOWNERS (REQ-DEVOPS-002 AC3) can't be configured without a remote | AC3 not yet met | Configure when the GitHub remote exists |
 | KI-015 | gitleaks is not installed locally; the pre-commit hook skips the local secret scan with a warning | CI still scans every PR | Optional: install gitleaks locally |
 | KI-011 | pnpm 12 auto-added `minimumReleaseAgeExclude` for turbo 2.11.6 in `pnpm-workspace.yaml` (release newer than the supply-chain age threshold) | Bypasses one supply-chain check for turbo only | Remove the exclusion once 2.11.6 passes the threshold |

@@ -8,6 +8,8 @@
 
 This document defines each deployable: its responsibility, owned data, API surface, synchronous dependencies, events, scaling profile and the requirements it implements. Data models are in [06](06-database-design.md), endpoint conventions in [07](07-api-design.md), and the event catalogue in [08](08-event-driven-architecture.md).
 
+> **Pending change (Proposed 2026-10-01):** the Restaurant OS design adds pos-service (8102), kitchen-service (8103), inventory-service (8104) and procurement-service (8105), renames menu-service to catalog-service, and adds gateway routes ([restaurant-os README §1–2](architecture/restaurant-os/README.md), [ADR-018](17-adr/ADR-018-restaurant-os-services.md)). This document is updated when that design is approved.
+
 ---
 
 ## 1. Conventions shared by all services
