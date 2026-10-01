@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Version | 0.1.0 |
-| Status | **Proposed** 2026-10-01, awaiting approval |
+| Status | **Approved** 2026-10-01 by the project owner (design decisions D-01..D-23 as proposed) |
 | Owner | catalog-service (today's menu-service, renamed before any code exists; port 8084; database `catalog_db`) |
 | Requirements | REQ-PRODUCT-001..009, REQ-MENU-001..004 (v2 where bumped), REQ-MENU-005..010, REQ-CART-002 v2, REQ-SEARCH-003 |
 | Replaces | The `menu_db` sketch in [06 §2.4](../../06-database-design.md) (never implemented) |

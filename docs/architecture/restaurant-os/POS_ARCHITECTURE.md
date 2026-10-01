@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Version | 0.1.0 |
-| Status | **Proposed** 2026-10-01, awaiting approval |
+| Status | **Approved** 2026-10-01 by the project owner (design decisions D-01..D-23 as proposed) |
 | Owner | pos-service (new, port 8102, database `pos_db`) |
 | Requirements | REQ-POS-001..012, REQ-BILL-001..009, REQ-QR-001..006, REQ-PAYMENT-006, REQ-OUTLET-004 AC2, REQ-OUTLET-007, NFR-PERF-005 |
 | Phase | 13A (floor, held orders, billing), 13E (QR) |

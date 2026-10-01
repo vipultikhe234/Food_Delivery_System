@@ -6,8 +6,8 @@
 | Phase 2: System design | **Approved** 2026-10-01, together with [IMPACT-0001](requirements/impact/IMPACT-0001.md) and OQ-21..23 |
 | Phase 3: Repository structure | **Done** 2026-10-01, awaiting review (monorepo skeleton, backend parent POM and platform modules, Maven wrapper, pnpm workspace, requirements validator, CI workflows, git hooks) |
 | Restaurant OS addendum: requirements | **Approved** 2026-10-01 and registered in `requirements.json` ([restaurant-os/](requirements/restaurant-os/README.md), [IMPACT-0002](requirements/impact/IMPACT-0002.md)) |
-| Restaurant OS addendum: design | **Proposed** 2026-10-01, awaiting approval ([architecture/restaurant-os/](architecture/restaurant-os/README.md), ADR-018..021, decisions D-01..D-23) |
-| Phase 4: Infrastructure | After the ROS design is approved |
+| Restaurant OS addendum: design | **Approved** 2026-10-01 ([architecture/restaurant-os/](architecture/restaurant-os/README.md), ADR-018..021, decisions D-01..D-23 as proposed) |
+| Phase 4: Infrastructure | Next |
 
 ## Requirements (sources of truth)
 | # | Document | Content |
@@ -35,14 +35,14 @@
 | 14 | [14-disaster-recovery.md](14-disaster-recovery.md) | RPO/RTO, failure responses, backups, regional DR, drills, resilience patterns |
 | 15 | [15-ai-architecture.md](15-ai-architecture.md) | Food assistant, tools, guardrails, recommendations, DevAgent/TestAgent |
 | 16 | [16-testing-strategy.md](16-testing-strategy.md) | Test layers, traceability, gates, must-have cases, evidence, Definition of Done |
-| 17 | [17-adr/](17-adr/README.md) | Architecture Decision Records ADR-001…ADR-017 (accepted), ADR-018…ADR-021 (proposed) |
+| 17 | [17-adr/](17-adr/README.md) | Architecture Decision Records ADR-001…ADR-021 |
 
 ## Detailed designs
 | Document | Content |
 |---|---|
 | [architecture/order-state-machine.md](architecture/order-state-machine.md) | States, transitions T1–T26, edge cases, status labels, tests |
 | [architecture/delivery-assignment-algorithm.md](architecture/delivery-assignment-algorithm.md) | Trigger, candidates, filters, scoring, offers, concurrency, availability states |
-| [architecture/restaurant-os/](architecture/restaurant-os/README.md) (Proposed) | Restaurant OS design: service boundaries, ports, routes, topics, event catalogue, tenancy, roles; catalogue, order, POS, kitchen, inventory and procurement architectures with ERDs, state machines, API contracts and sequence diagrams |
+| [architecture/restaurant-os/](architecture/restaurant-os/README.md) | Restaurant OS design: service boundaries, ports, routes, topics, event catalogue, tenancy, roles; catalogue, order, POS, kitchen, inventory and procurement architectures with ERDs, state machines, API contracts and sequence diagrams |
 | [ui/design-system.md](ui/design-system.md) | Tokens (with measured contrast), typography, components, accessibility, platform variants |
 | [ui/screen-inventory.md](ui/screen-inventory.md) | Screens per app with IDs, routes, backing requirements, navigation |
 

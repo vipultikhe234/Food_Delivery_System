@@ -30,7 +30,7 @@ The ROS brief introduces the master product vs menu item split, channels, order 
 | REQ-ORDER-002 (state machine) | v2 (IMPACT-0001) | Lifecycles per order type; SERVED, HANDED_OVER and COMPLETED states; deferred payment for dine-in (REQ-ORDER-008, ROS-OQ-17) | v3 |
 | REQ-ORDER-003 (restaurant accept/ready) | v1 | Acceptance generates KOTs; READY can come from the KDS roll-up (REQ-KOT-002, REQ-KDS-003) | v2 |
 | REQ-RT-002 (real-time updates) | v1 | New kitchen, table and QR-session topics (REQ-KDS-002) | v2 |
-| REQ-WEB-002 (restaurant dashboard) | v1 | Gains HQ catalogue, recipe, inventory and purchasing screens. POS and KDS become separate apps (new REQ-WEB-005, REQ-WEB-006, defined in design) | v2 |
+| REQ-WEB-002 (restaurant dashboard) | v1 | Gains HQ catalogue, recipe, inventory and purchasing screens. POS and KDS become separate apps (new REQ-WEB-005, REQ-WEB-006, defined in design). **Registration note:** recorded as AC4 of REQ-WEB-002 v2 (`web/apps/pos`, `web/apps/kds`) instead of two new IDs; no REQ-WEB-005/006 exist. | v2 |
 | REQ-WALLET-002 (split payment, P2, ANALYSIS) | v1 | **No change.** Approved as cancelled (ROS-OQ-16), but corrected during registration: it covers online wallet + gateway checkout, which REQ-BILL-004 (in-store bills) doesn't replace. It stays in the backlog. | — |
 
 **Not changed:** REQ-PAYMENT-002 webhook idempotency already covers BR-R6. REQ-AUDIT-001 covers BR-R12. REQ-PLAT-006 (outbox, idempotent consumers) covers ROS §27. REQ-AI-002 (controlled tools, no database access) already covers the restaurant tools. Delivery, location, review, search and notification requirements are only touched through new event fields.

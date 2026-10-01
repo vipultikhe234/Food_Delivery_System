@@ -3,22 +3,21 @@
 ```text
 TASK ID:            TASK-ROS-002
 REQUIREMENT ID:     Restaurant OS addendum (97 requirements, IMPACT-0002), NFR-PERF-005..007
-CURRENT STATUS:     Design PROPOSED 2026-10-01, awaiting project owner approval (ROS §31 design stage)
+CURRENT STATUS:     Design APPROVED 2026-10-01 by the project owner (decisions D-01..D-23 as proposed; D-23 keeps a
+                    READY KOT of a cancelled order READY with a cancellation alert, no requirement change)
 WHAT WAS CHANGED:   docs/architecture/restaurant-os/: README (service boundaries, ports, gateway routes, Kafka topics,
                     event catalogue, tenancy, roles and permissions, devices and PINs, real-time channels, phase
                     mapping, decisions D-01..D-23), CATALOG_, ORDER_, POS_, KITCHEN_ and INVENTORY_ARCHITECTURE.md
                     (ERDs, state machines, API contracts, events, sequence diagrams, concurrency, test obligations);
-                    ADR-018..021 (Proposed); pending-change notes in docs 05, 06, 08, 09 and order-state-machine;
+                    ADR-018..021 (Accepted); docs 05, 06, 08, 09 -> v1.1.0; order-state-machine -> v2.0.0
+                    (SERVED, HANDED_OVER, COMPLETED, T27-T34); screen inventory v1.1.0 (POS, KDS, QR, HQ screens);
                     docs/README and ADR index; KI-016 (tax adviser confirmation)
 DATABASE CHANGES:   Designed only (catalog_db, order_db changes, pos_db, kitchen_db, inventory_db, procurement_db)
 API CHANGES:        Designed only
-TESTS EXECUTED:     mermaid.parse on all 31 diagrams in the ROS docs and order-state-machine: 0 failures
-                    relative link and anchor check on all new and edited docs: OK
+TESTS EXECUTED:     mermaid.parse on every diagram in the edited docs; relative link and anchor check (see commit)
 NOT EXECUTED:       No code exists for these designs yet
-KNOWN ISSUES:       KI-006..009, KI-011, KI-012, KI-014..016
-NEXT ACTION:        Project owner reviews the ROS design and decisions D-01..D-23. On approval: ADR-018..021 become
-                    Accepted, docs 05/06/08/09 and order-state-machine are updated (v2.0.0), REQ-ORDER-002 v3 design
-                    is linked, screen inventory gets POS/KDS/QR/HQ screens; then Phase 4 (infrastructure).
+KNOWN ISSUES:       KI-006..009, KI-011, KI-012, KI-014..017
+NEXT ACTION:        Phase 4 (infrastructure, MP §60), after the project owner confirms the start.
 ```
 
 ```text

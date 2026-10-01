@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Source | Project owner's "Additional module — Advanced Restaurant POS + Product + Inventory Platform" brief, received 2026-10-01. Cited as **ROS §n** (section numbers below). |
-| Stage | Requirement analysis (ROS §31, step 1). No architecture or code yet. |
+| Stage | Requirements approved and registered; design approved 2026-10-01 ([architecture/restaurant-os/](../../architecture/restaurant-os/README.md)). No code yet. |
 | Status | **Approved 2026-10-01** by the project owner, with all 22 open questions decided as recommended (table below). Registered in `requirements.json` as APPROVED with history; phases use `phase` 13 plus `subPhase` A–E for 13A–13E. |
 | Impact on the approved baseline | [IMPACT-0002](../impact/IMPACT-0002.md) |
 | Constraint | Independent design. Commercial POS products are used only as a reference for publicly observable capabilities. No code, UI, branding, API or schema is copied (ROS preamble). |

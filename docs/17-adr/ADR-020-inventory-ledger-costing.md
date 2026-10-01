@@ -1,7 +1,7 @@
 # ADR-020: Immutable stock ledger with balances, idempotent consumption and configurable costing
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-01
-- Deciders: Pending project owner approval (ROS-OQ-09, -10, -11 decided 2026-10-01)
+- Deciders: Project owner (ROS-OQ-09, -10, -11 decided and ROS design approved 2026-10-01)
 - Related requirements: REQ-INV-002..006, REQ-INV-010, REQ-RECIPE-002, REQ-RECIPE-004, REQ-PURCHASE-003, BR-R1, BR-R5, NFR-PERF-007
 
 ## Context

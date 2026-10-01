@@ -2,12 +2,12 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0.0 |
-| Status | **Approved** 2026-10-01 |
+| Version | 1.1.0 |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design) |
 | Depends on | [ADR-002](17-adr/ADR-002-kafka.md), [ADR-005](17-adr/ADR-005-outbox-pattern.md), [ADR-007](17-adr/ADR-007-orchestrated-saga.md), [order-state-machine](architecture/order-state-machine.md) |
 | Requirements | REQ-PLAT-005, REQ-PLAT-006, REQ-ORDER-005, NFR-REL-001, NFR-CONS-003 |
 
-> **Pending change (Proposed 2026-10-01):** the Restaurant OS design adds topics `catalog.events.v1` (replacing the never-built `menu.events.v1`), `pos.events.v1`, `kitchen.events.v1`, `inventory.events.v1` and `procurement.events.v1`, and new order, payment and restaurant events ([restaurant-os README §3](architecture/restaurant-os/README.md)). This document is updated when that design is approved.
+v1.1.0 adds the topics `catalog.events.v1` (replacing the never-built `menu.events.v1`), `pos.events.v1`, `kitchen.events.v1`, `inventory.events.v1` and `procurement.events.v1`, and new order, payment and restaurant events. The full Restaurant OS event catalogue is in [restaurant-os README §3.2](architecture/restaurant-os/README.md#32-event-catalogue-new-and-changed) (§3.7 below).
 
 ---
 
@@ -46,7 +46,11 @@ Kafka headers duplicate `eventType`, `eventVersion`, `correlationId` and `tracep
 | `identity.events.v1` | userId | identity | 6 / 1 | 7 d | delete |
 | `user.events.v1` | userId | user | 6 / 1 | 7 d | delete |
 | `restaurant.events.v1` | restaurantId | restaurant | 6 / 1 | 7 d | delete |
-| `menu.events.v1` | branchId | menu | 12 / 1 | 7 d | delete |
+| `catalog.events.v1` (was `menu.events.v1`) | branchId (menu events), restaurantId (brand-level product, category, combo and tax events) | catalog | 12 / 1 | 7 d | delete |
+| `pos.events.v1` | branchId | pos | 12 / 1 | 7 d | delete |
+| `kitchen.events.v1` | orderId | kitchen | 12 / 1 | 7 d | delete |
+| `inventory.events.v1` | locationId | inventory | 12 / 1 | 7 d | delete |
+| `procurement.events.v1` | restaurantId | procurement | 6 / 1 | 7 d | delete |
 | `media.events.v1` | mediaId | media | 3 / 1 | 3 d | delete |
 | `promotion.events.v1` | offerId | promotion | 6 / 1 | 7 d | delete |
 | `order.events.v1` | orderId | order | 24 / 3 | 7 d | delete |
@@ -62,7 +66,7 @@ Kafka headers duplicate `eventType`, `eventVersion`, `correlationId` and `tracep
 | `audit.events.v1` | entityId | all | 12 / 1 | 7 d | delete |
 | `<topic>.retry.<n>` / `<topic>.dlt` | same | consumers | Same as source | 7 d / 30 d | delete |
 
-Payment and delivery events and commands are keyed by **orderId**, not paymentId or partnerId, so that the orchestrator sees each order's messages in order.
+Payment and delivery events and commands are keyed by **orderId**, not paymentId or partnerId, so that the orchestrator sees each order's messages in order. Exception (v1.1.0): in-store payments for a bill are keyed by **billId**.
 
 Partition counts at design scale are sized from about 100K active orders and about 100K location msg/s (11-scalability.md). Increasing partitions later changes key-to-partition mapping, so production counts are set generously up front. Producer settings: `acks=all`, `enable.idempotence=true`, `compression.type=lz4`, `linger.ms=5` (location `linger.ms=20`, batched). Production: RF 3, `min.insync.replicas=2`.
 
@@ -132,7 +136,7 @@ Commands are ordinary messages in the envelope (`eventType` = command name). The
 | identity.events.v1 | `UserRegistered`, `UserRoleChanged`, `UserBlocked`, `UserUnblocked`, `SessionRevoked`, `OtpRequested` (contains a delivery reference, **not** the OTP) | USR, NOT, AN, RT (disconnect on block) |
 | user.events.v1 | `UserProfileUpdated`, `UserPreferencesUpdated`, `AddressChanged`, `DeviceRegistered` | REC, NOT, ai (cache) |
 | restaurant.events.v1 | `RestaurantSubmitted`, `RestaurantApproved`, `RestaurantRejected`, `RestaurantSuspended`, `BranchCreated`, `BranchUpdated`, `BranchAvailabilityChanged`, `StaffInvited`, `StaffRemoved` | SRCH, MENU, ID, NOT, CART, DEL (branch location cache), AN |
-| menu.events.v1 | `MenuUpdated`, `ProductUpdated`, `MenuItemAvailabilityChanged` | SRCH, CART, REC |
+| catalog.events.v1 (was menu.events.v1) | `MenuUpdated`, `ProductUpdated`, `MenuItemAvailabilityChanged`, plus the v1.1.0 events in §3.7 | SRCH, CART, REC |
 | promotion.events.v1 | `OfferUpdated`, `CouponRedeemed`, `PromotionAbuseFlagged` | SRCH (badges), AN, admin |
 | review.events.v1 | `ReviewCreated`, `ReviewModerated`, `RatingAggregated` | REST, MENU, DEL, SRCH, REC, NOT (restaurant) |
 | notification.events.v1 | `NotificationCreated` | RT (in-app push) |
@@ -142,6 +146,13 @@ Commands are ordinary messages in the envelope (`eventType` = command name). The
 
 ### 3.6 location.updates.v1 (exception to the outbox)
 `{partnerId, lat, lng, accuracyM, speedMps, heading, recordedAt, orderId?}`. Published directly after the Redis write; loss of a single update is acceptable because the next one supersedes it. Consumers: `location-history-writer` (location-service, batch persist for active deliveries), realtime-service (forwards only partners in the active-delivery map), delivery-service (optional: arrival geofence detection).
+
+### 3.7 Restaurant OS events (v1.1.0)
+The catalogue of new and changed events is maintained in [restaurant-os README §3.2](architecture/restaurant-os/README.md#32-event-catalogue-new-and-changed). Main points:
+- order.events.v1 adds `KitchenRoundSubmitted`, `OrderLinesAdded`, `OrderLineVoided`, `OrderServed`, `OrderHandedOver` and `OrderCompleted`; `OrderCreated` gains `orderSource`, `orderType`, `tableSessionId`, `paymentMode`, `menuVersion` and `channel`.
+- payment.events.v1: `PaymentCompleted` gains `referenceType` (`ORDER`/`BILL`), `method` and `attestedBy`.
+- restaurant.events.v1 adds `LocationCreated`, `LocationUpdated`, `DeviceRegistered`, `DeviceRevoked` and `StaffAssignmentChanged`.
+- Every ROS payload carries `restaurantId`. A consumer that holds the referenced entity under a different brand sends the event to the DLT and raises an alert.
 
 ## 4. Consumer groups
 

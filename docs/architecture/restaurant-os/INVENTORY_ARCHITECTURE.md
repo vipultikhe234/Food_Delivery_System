@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Version | 0.1.0 |
-| Status | **Proposed** 2026-10-01, awaiting approval |
+| Status | **Approved** 2026-10-01 by the project owner (design decisions D-01..D-23 as proposed) |
 | Owners | inventory-service (new, port 8104, `inventory_db`); procurement-service (new, port 8105, `procurement_db`) |
 | Requirements | REQ-INV-001..011, REQ-RECIPE-001..006, REQ-PURCHASE-001..006, REQ-SUPPLIER-001..004, REQ-OUTLET-005, REQ-MENU-009, NFR-PERF-007 |
 | ADR | [ADR-020](../../17-adr/ADR-020-inventory-ledger-costing.md) inventory ledger and costing |

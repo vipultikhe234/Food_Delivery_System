@@ -4,6 +4,7 @@
 - 3 infrastructure services: `api-gateway` (8080), `service-discovery` (8761), `config-server` (8888).
 - 18 domain services: identity, user, audit, restaurant, menu (includes products), media, cart, promotion, order (saga orchestrator), payment (includes the wallet module), delivery, location, notification, review, search, analytics, admin (complaints + aggregation), realtime (WebSocket).
 - Phase 17 services: recommendation, ai. Phase 18: requirement-service.
+- Restaurant OS (ADR-018, approved 2026-10-01): menu-service is renamed **catalog-service** (8084); new pos-service (8102), kitchen-service (8103), inventory-service (8104), procurement-service (8105). 25 deployables in total. Web apps `web/apps/pos` and `web/apps/kds`. Tenant column `restaurant_id` with `@TenantId` + PostgreSQL RLS (ADR-019). Design: `docs/architecture/restaurant-os/`.
 - Ports, routes and per-service cards: `docs/05-microservices.md`.
 
 ## Non-negotiable patterns

@@ -3,10 +3,10 @@
 | Field | Value |
 |---|---|
 | Version | 0.1.0 |
-| Status | **Proposed** 2026-10-01, awaiting approval |
+| Status | **Approved** 2026-10-01 by the project owner (design decisions D-01..D-23 as proposed) |
 | Owner | kitchen-service (new, port 8103, database `kitchen_db`); realtime-service pushes updates |
 | Requirements | REQ-KOT-001..008, REQ-KDS-001..006, REQ-ORDER-003 v2, REQ-RT-002 v2, NFR-PERF-006 |
-| Phase | 13B (backend); KDS screens in `web/apps/pos` in Phase 14 |
+| Phase | 13B (backend); KDS app `web/apps/kds` in Phase 14 (REQ-WEB-002 v2 AC4) |
 
 ## 1. Responsibilities
 - Kitchen stations per outlet, the default station, printers per station, and the stations each kitchen display shows.
@@ -192,7 +192,7 @@ The card shows elapsed time since `KOTCreated` against the largest `prep_minutes
 | **Total** | **1.4 s** (0.6 s headroom) |
 
 ## 8. Printing (REQ-KOT-005, REQ-KOT-008)
-- A station printer is a kitchen or POS device running the PWA in kiosk printing mode. It subscribes to its station topic, renders the 80 mm KOT and calls `window.print()`.
+- A station printer is a kitchen device running the KDS app (or a POS device running the POS app) in kiosk printing mode. It subscribes to its station topic, renders the 80 mm KOT and calls `window.print()`.
 - The device reports `POST /api/v1/kitchen/print-jobs/{id}/result {PRINTED | FAILED, error}`. Browsers can't detect paper-out or offline printers reliably, so a job without a PRINTED report within 30 s is marked FAILED, and the failure shows on the POS inbox and the KDS (AC2). Staff can reprint at any time.
 - Reprint (KOT-005): `POST /api/v1/kitchen/kots/{id}/reprints` creates a REPRINT job with `reprint_no = n`, prints "REPRINT n", appends `kot_events(REPRINTED)` and publishes `KOTReprinted` (audited).
 - A local ESC/POS bridge for direct printing is P2 (ROS-OQ-05).

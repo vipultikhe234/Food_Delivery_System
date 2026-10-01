@@ -2,14 +2,14 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0.0 |
-| Status | **Approved** 2026-10-01 |
-| Depends on | [ADR-003](17-adr/ADR-003-postgresql.md), [ADR-005](17-adr/ADR-005-outbox-pattern.md), [05 Microservices](05-microservices.md) |
+| Version | 1.1.0 |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design) |
+| Depends on | [ADR-003](17-adr/ADR-003-postgresql.md), [ADR-005](17-adr/ADR-005-outbox-pattern.md), [ADR-019](17-adr/ADR-019-tenant-isolation.md), [ADR-020](17-adr/ADR-020-inventory-ledger-costing.md), [05 Microservices](05-microservices.md) |
 | Requirements | REQ-PLAT-006, REQ-PLAT-008, plus the `databaseRequirements` of every requirement |
 
 This is the logical design. The physical DDL is written as Flyway migrations in each service during its implementation phase (`src/main/resources/db/migration/V<n>__<desc>.sql`). Column lists show the important columns. Base columns (§1.2) are implied for every table marked **[B]**.
 
-> **Pending change (Proposed 2026-10-01):** the Restaurant OS design replaces §2.4 `menu_db` with `catalog_db`, extends §2.8 `order_db`, adds `pos_db`, `kitchen_db`, `inventory_db` and `procurement_db`, and adds a `restaurant_id` tenant column with row-level security ([restaurant-os architecture](architecture/restaurant-os/README.md), [ADR-019](17-adr/ADR-019-tenant-isolation.md)). This document is updated when that design is approved.
+v1.1.0 replaces §2.4 `menu_db` with `catalog_db`, extends §2.8 `order_db`, adds `pos_db`, `kitchen_db`, `inventory_db` and `procurement_db` (§2.17) and adds the tenant convention (§1.1). Their full models are in the [Restaurant OS designs](architecture/restaurant-os/README.md).
 
 ---
 
@@ -31,6 +31,7 @@ This is the logical design. The physical DDL is written as Flyway migrations in 
 | Migrations | Flyway. **Expand → migrate → contract** across releases (NFR-DEPLOY-001). No destructive change in the same release that stops using a column. |
 | Optimistic locking | `version bigint` and JPA `@Version` on every mutable aggregate root |
 | PII | Phone and e-mail stored plain for lookup, but masked in logs. Government document numbers are encrypted at the application layer (AES-GCM, key from KMS) and stored as `bytea` plus a `last4` column. |
+| Tenancy (v1.1.0) | Every tenant-owned table in catalog, order, pos, kitchen, inventory and procurement has `restaurant_id uuid NOT NULL` (the brand). Hibernate `@TenantId` filters and stamps it; PostgreSQL row-level security with `FORCE ROW LEVEL SECURITY` and policy `restaurant_id = current_setting('app.restaurant_id')::uuid` backs it up. `common-persistence` runs `SET LOCAL app.restaurant_id` per transaction. Only the `<service>_owner` role has `BYPASSRLS`, for migrations ([ADR-019](17-adr/ADR-019-tenant-isolation.md)). |
 
 ### 1.2 Base columns **[B]**
 ```text
@@ -144,7 +145,8 @@ restaurant_staff [B]    restaurant_id, user_id, role CHECK IN ('MANAGER'), branc
 staff_invitations [B]   restaurant_id, branch_ids uuid[], phone_or_email, role, token_hash, expires_at, accepted_at
 ```
 
-### 2.4 menu_db (menu-service)
+### 2.4 catalog_db (catalog-service; was menu_db)
+v1.1.0: this sketch is superseded by the `catalog_db` model in [CATALOG_ARCHITECTURE §2](architecture/restaurant-os/CATALOG_ARCHITECTURE.md#2-data-model-catalog_db) (master products, combos, tax classes, price layers, menus, channels, schedules, menu items, published menu versions). The original sketch is kept below for history; it was never implemented.
 ```text
 categories [B]          branch_id, name, sort_order, active bool, deleted_at
 products [B]            branch_id, category_id FK, name, description, food_type CHECK IN ('VEG','NON_VEG','EGG'),
@@ -232,6 +234,8 @@ saga_state [B]          order_id UNIQUE, step CHECK IN ('PAYMENT','RESTAURANT_AC
                         ix_saga_deadline (deadline_at) WHERE step <> 'DONE'
 ```
 Order rows are retained indefinitely (financial records, minimum 8 years under Indian accounting rules, subject to legal review). Old orders move to a partition or archive after 2 years (§3).
+
+v1.1.0 changes ([ORDER_ARCHITECTURE §6](architecture/restaurant-os/ORDER_ARCHITECTURE.md#6-data-model-changes-order_db)): `orders` gains `order_source`, `order_type`, `channel`, `table_session_id`, `table_label`, `qr_guest_id`, `device_id`, `menu_version`, `business_date`, `locked`, `settled_at`, `served_at`, `handed_over_at`, `completed_at`; `payment_method` adds `BILL`; `customer_id` and `quote_id` become nullable; status adds `SERVED`, `HANDED_OVER`, `COMPLETED`. `order_items` gains rounds, fire status, voided quantity, station and tax snapshots and combo child lines. New tables `order_rounds`, `order_contacts` and the projection `table_sessions_view`. Trigger `fn_guard_locked_order()` rejects changes to locked orders (REQ-ORDER-009).
 
 ### 2.9 payment_db (payment-service)
 ```text
@@ -377,6 +381,17 @@ audit_logs                              -- PARTITION BY RANGE (occurred_at) mont
 
 ### 2.16 requirement_db (Phase 18; designed then)
 Imports `requirements.json`: requirements, requirement_versions, status_history, acceptance_criteria, traceability_links (requirement ↔ code/test/PR), test_evidence, releases, release_requirements.
+
+### 2.17 Restaurant OS databases (v1.1.0)
+
+| Database | Service | Model |
+|---|---|---|
+| `pos_db` | pos-service | [POS_ARCHITECTURE §2](architecture/restaurant-os/POS_ARCHITECTURE.md#2-data-model-pos_db): areas, tables, sessions, held orders, QR codes and sessions, bills, invoices and counters, credit notes, settings |
+| `kitchen_db` | kitchen-service | [KITCHEN_ARCHITECTURE §3](architecture/restaurant-os/KITCHEN_ARCHITECTURE.md#3-data-model-kitchen_db): stations, displays, printers, KOTs, KOT items and events, KOT counters, roll-up |
+| `inventory_db` | inventory-service | [INVENTORY_ARCHITECTURE §4](architecture/restaurant-os/INVENTORY_ARCHITECTURE.md#4-data-model-inventory_db): stock items, units, locations, balances, batches, movement ledger, counts, transfers, production, recipes ([ADR-020](17-adr/ADR-020-inventory-ledger-costing.md)) |
+| `procurement_db` | procurement-service | [INVENTORY_ARCHITECTURE §13.1](architecture/restaurant-os/INVENTORY_ARCHITECTURE.md#131-data-model-procurement_db): suppliers, purchase orders, goods receipts, invoices, returns |
+
+restaurant_db gains locations (warehouses, central kitchens) and the device registry; identity_db gains device credentials and Argon2id staff PIN hashes; payment_db gains in-store payment records with `reference_type` `ORDER`/`BILL` (REQ-PAYMENT-006). Details in [restaurant-os README §1](architecture/restaurant-os/README.md#1-service-boundaries-ros-oq-01-adr-018).
 
 ---
 

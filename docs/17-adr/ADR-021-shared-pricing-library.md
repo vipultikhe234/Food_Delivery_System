@@ -1,7 +1,7 @@
 # ADR-021: Shared, framework-free pricing library
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-01
-- Deciders: Pending project owner approval
+- Deciders: Project owner (ROS design approved 2026-10-01)
 - Related requirements: REQ-BILL-001 (AC4 requires one pricing library shared with cart-service), REQ-CART-002 v2, REQ-PRODUCT-004, REQ-PRODUCT-005, REQ-PRODUCT-007, REQ-BILL-004, REQ-BILL-009
 
 ## Context

@@ -1,7 +1,7 @@
 # ADR-018: Restaurant OS service boundaries (25 deployables)
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-01
-- Deciders: Project owner (ROS-OQ-01 decided 2026-10-01); this ADR records the resulting design
+- Deciders: Project owner (ROS-OQ-01 decided and ROS design approved 2026-10-01)
 - Related requirements: BR-11, REQ-POS-*, REQ-BILL-*, REQ-QR-*, REQ-KOT-*, REQ-KDS-*, REQ-INV-*, REQ-RECIPE-*, REQ-PURCHASE-*, REQ-SUPPLIER-*, REQ-PRODUCT-*, REQ-MENU-005..010, REQ-OUTLET-*
 - Amends: [ADR-001](ADR-001-microservices.md) (service count 21 → 25; ADR-001 otherwise stands)
 

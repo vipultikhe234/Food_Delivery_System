@@ -3,10 +3,10 @@
 | Field | Value |
 |---|---|
 | Version | 0.1.0 |
-| Status | **Proposed** 2026-10-01, awaiting approval |
+| Status | **Approved** 2026-10-01 by the project owner (design decisions D-01..D-23 as proposed) |
 | Owner | order-service (single owner of every order, whatever its source) |
 | Requirements | REQ-ORDER-001 v2, REQ-ORDER-002 v3, REQ-ORDER-003 v2, REQ-ORDER-007, REQ-ORDER-008, REQ-ORDER-009, REQ-POS-001, REQ-POS-005, REQ-POS-009, REQ-POS-010, REQ-KOT-002 AC3, REQ-KOT-006, REQ-KDS-003 AC3, REQ-QR-005, REQ-BILL-003 AC4, NFR-PERF-005 |
-| Extends | [order-state-machine.md](../order-state-machine.md) v1.0.0 (T1–T26 stay valid). On approval, that document becomes v2.0.0 with the content of §4. |
+| Extends | [order-state-machine.md](../order-state-machine.md): T1–T26 stay valid; the states and transitions of §4 are merged into its v2.0.0 transition table. |
 
 ## 1. What changes
 

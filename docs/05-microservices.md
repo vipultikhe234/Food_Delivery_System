@@ -2,13 +2,13 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0.0 |
-| Status | **Approved** 2026-10-01 |
-| Depends on | [04 System Architecture](04-system-architecture.md), [ADR-001](17-adr/ADR-001-microservices.md) |
+| Version | 1.1.0 |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design) |
+| Depends on | [04 System Architecture](04-system-architecture.md), [ADR-001](17-adr/ADR-001-microservices.md), [ADR-018](17-adr/ADR-018-restaurant-os-services.md) |
 
 This document defines each deployable: its responsibility, owned data, API surface, synchronous dependencies, events, scaling profile and the requirements it implements. Data models are in [06](06-database-design.md), endpoint conventions in [07](07-api-design.md), and the event catalogue in [08](08-event-driven-architecture.md).
 
-> **Pending change (Proposed 2026-10-01):** the Restaurant OS design adds pos-service (8102), kitchen-service (8103), inventory-service (8104) and procurement-service (8105), renames menu-service to catalog-service, and adds gateway routes ([restaurant-os README §1–2](architecture/restaurant-os/README.md), [ADR-018](17-adr/ADR-018-restaurant-os-services.md)). This document is updated when that design is approved.
+v1.1.0 adds pos-service, kitchen-service, inventory-service and procurement-service, and renames menu-service to **catalog-service** (25 deployables in total, [ADR-018](17-adr/ADR-018-restaurant-os-services.md)). Their detailed designs are in [architecture/restaurant-os/](architecture/restaurant-os/README.md); §3.22–3.25 below summarise them, and the extensions of existing services are listed in [restaurant-os README §1](architecture/restaurant-os/README.md#1-service-boundaries-ros-oq-01-adr-018).
 
 ---
 
@@ -36,12 +36,14 @@ This document defines each deployable: its responsibility, owned data, API surfa
 | 8081 | identity-service | 8094 | search-service |
 | 8082 | user-service | 8095 | analytics-service |
 | 8083 | restaurant-service | 8096 | admin-service |
-| 8084 | menu-service | 8097 | realtime-service |
+| 8084 | catalog-service (was menu-service) | 8097 | realtime-service |
 | 8085 | media-service | 8098 | recommendation-service |
 | 8086 | cart-service | 8099 | ai-service |
 | 8087 | promotion-service | 8100 | audit-service |
 | 8088 | order-service | 8101 | requirement-service (Phase 18) |
 | 8089 | payment-service | 8090 | delivery-service |
+| 8102 | pos-service | 8103 | kitchen-service |
+| 8104 | inventory-service | 8105 | procurement-service |
 
 Management/actuator ports are the service port + 1000 (e.g. 9088 for order-service). In Kubernetes every service listens on 8080 and 9090. The table above applies to local development only.
 
@@ -53,8 +55,16 @@ Management/actuator ports are the service port + 1000 (e.g. 9088 for order-servi
 | `/api/v1/users/**`, `/api/v1/me/**` | user-service | Authenticated |
 | `/api/v1/restaurants/**` (GET) | restaurant-service | Public |
 | `/api/v1/restaurants/**` (write), `/api/v1/partner/restaurants/**` | restaurant-service | Authenticated |
-| `/api/v1/branches/*/menu/**` (GET), `/api/v1/products/**` (GET) | menu-service | Public |
-| `/api/v1/partner/menu/**` | menu-service | Authenticated |
+| `/api/v1/branches/*/menu/**` (GET), `/api/v1/products/**` (GET) | catalog-service | Public |
+| `/api/v1/partner/menu/**`, `/api/v1/partner/catalog/**`, `/api/v1/partner/menus/**` | catalog-service | Authenticated, brand or outlet scope |
+| `/api/v1/partner/orders/**` | order-service | Authenticated staff |
+| `/api/v1/pos/**` | pos-service | Authenticated staff or paired device + PIN |
+| `/api/v1/qr/**` | pos-service | Public with a signed QR token; rate-limited per token and IP |
+| `/api/v1/kitchen/**` | kitchen-service | Authenticated staff or paired kitchen device |
+| `/api/v1/inventory/**`, `/api/v1/recipes/**` | inventory-service | Authenticated, brand or outlet scope |
+| `/api/v1/procurement/**` | procurement-service | Authenticated, brand or outlet scope |
+| `/api/v1/partner/devices/**`, `/api/v1/partner/locations/**` | restaurant-service | `DEVICE_MANAGE`, `BRANCH_MANAGE` |
+| `/api/v1/auth/device/**` | identity-service | Pairing (public, rate-limited); PIN login (device token) |
 | `/api/v1/media/**` | media-service | Authenticated |
 | `/api/v1/search/**`, `/api/v1/discovery/**` | search-service | Public |
 | `/api/v1/cart/**` | cart-service | Authenticated |
@@ -161,7 +171,8 @@ Each card lists: **Owns**, **API (main)**, **Calls (sync)**, **Publishes**, **Co
 - **Redis (cache):** branch open status (write-through).
 - **Requirements:** REQ-RESTAURANT-001..004.
 
-### 3.5 menu-service (Phase 6)
+### 3.5 catalog-service (Phase 6; was menu-service)
+v1.1.0 renames the service and widens it to the brand catalogue: master products, combos, tax classes, price layers, menus per channel, schedules and published menu versions ([CATALOG_ARCHITECTURE.md](architecture/restaurant-os/CATALOG_ARCHITECTURE.md)). The internal price check moves to `POST /internal/v1/pricing/price-check` with a `channel` parameter, and events move to `catalog.events.v1`. The v1.0.0 scope below stays valid.
 - **Owns:** categories, products (veg/non-veg/egg, tags, prep time), variants, add-on groups and add-ons (min/max selection), product images (media IDs), availability/stock.
 - **API:**
   - Public: `GET /branches/{id}/menu` (cached full menu), `GET /products/{id}`
@@ -376,13 +387,39 @@ Each card lists: **Owns**, **API (main)**, **Calls (sync)**, **Publishes**, **Co
 - **API:** `/requirements`, `/requirements/{id}/versions`, `/requirements/{id}/status` (transition with evidence), `/traceability`, `/releases`.
 - **Requirements:** REQ-RMS-001..006 (tooling), REQ-DEVAGENT-001, REQ-ADMIN-004.
 
+### 3.22 pos-service (Phase 13A)
+- **Owns:** areas, tables, table sessions, transfers and merges, held orders, QR codes and QR sessions, bills, splits, invoices (gap-free numbering), credit notes, in-store settlement.
+- **API:** `/pos/**` (staff or paired device + PIN), `/qr/**` (signed QR token).
+- **Calls:** order-service (in-store order create, authoritative lines), payment-service (in-store payments, dynamic UPI QR), promotion-service (bill coupons).
+- **Publishes:** `pos.events.v1`. **Consumes:** order, payment and kitchen events.
+- **Design:** [POS_ARCHITECTURE.md](architecture/restaurant-os/POS_ARCHITECTURE.md).
+
+### 3.23 kitchen-service (Phase 13B)
+- **Owns:** stations, displays and printers, KOTs and KOT items, KOT event history, KOT numbering, KDS state, order kitchen roll-up.
+- **API:** `/kitchen/**` (staff or paired kitchen device).
+- **Publishes:** `kitchen.events.v1` (including `OrderKitchenStatusChanged`). **Consumes:** `KitchenRoundSubmitted`, `OrderLineVoided`, `OrderCancelled`.
+- **Design:** [KITCHEN_ARCHITECTURE.md](architecture/restaurant-os/KITCHEN_ARCHITECTURE.md).
+
+### 3.24 inventory-service (Phase 13C)
+- **Owns:** stock items, units, locations, balances, batches, the movement ledger, consumption, counts, waste, transfers, central-kitchen requests, production, alerts, costing, recipes and recipe costs.
+- **API:** `/inventory/**`, `/recipes/**`. Internal: `POST /internal/v1/stock/returns`.
+- **Publishes:** `inventory.events.v1`. **Consumes:** `OrderCompleted`, `KOTCancelled`, `KOTUpdated`, `PurchaseReceived`, location events.
+- **Design:** [INVENTORY_ARCHITECTURE.md](architecture/restaurant-os/INVENTORY_ARCHITECTURE.md), [ADR-020](17-adr/ADR-020-inventory-ledger-costing.md).
+
+### 3.25 procurement-service (Phase 13D)
+- **Owns:** suppliers, supplier items, purchase suggestions, purchase orders, goods receipts, purchase invoices, returns and debit notes, supplier payment records.
+- **API:** `/procurement/**`.
+- **Calls:** inventory-service (post purchase returns).
+- **Publishes:** `procurement.events.v1`. **Consumes:** stock alert events, `StockReceiptPosted`.
+- **Design:** [INVENTORY_ARCHITECTURE.md](architecture/restaurant-os/INVENTORY_ARCHITECTURE.md).
+
 ---
 
 ## 4. Synchronous dependency graph
 
 ```mermaid
 graph LR
-    CART[cart] --> MENU[menu]
+    CART[cart] --> MENU[catalog]
     CART --> REST[restaurant]
     CART --> LOC[location]
     CART --> PROMO[promotion]
@@ -400,6 +437,11 @@ graph LR
     AI[ai] -->|user JWT via gateway| SEARCH[search] & MENU & REC[recommendation] & CART & ORDER
     ADMIN[admin] --> PAY
     ADMIN --> ANALYTICS[analytics]
+    POS[pos] --> ORDER
+    POS --> PAY
+    POS --> PROMO
+    PROC[procurement] --> INV[inventory]
+    MENU --> KIT[kitchen]
 ```
 
 Rules:

@@ -2,13 +2,13 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0.0 |
-| Status | **Approved** 2026-10-01 |
-| Depends on | [ADR-008](17-adr/ADR-008-jwt-tokens.md), [07 API](07-api-design.md) |
+| Version | 1.1.0 |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design) |
+| Depends on | [ADR-008](17-adr/ADR-008-jwt-tokens.md), [ADR-019](17-adr/ADR-019-tenant-isolation.md), [07 API](07-api-design.md) |
 | Requirements | REQ-AUTH-001..005, REQ-SEC-001..003, REQ-AUDIT-001, REQ-PAYMENT-002, REQ-AI-002/003, REQ-DEVAGENT-002, REQ-QA-004, NFR-SEC-001..003 |
 | Reference standard | OWASP ASVS 4.x Level 2 (NFR-SEC-001, proposed), OWASP Top 10 2021, OWASP API Security Top 10 2023 |
 
-> **Pending change (Proposed 2026-10-01):** the Restaurant OS design adds roles CASHIER, CAPTAIN, KITCHEN_STAFF and INVENTORY_MANAGER, new permissions, device credentials, staff PINs, QR guest tokens and tenant isolation ([restaurant-os README §4–5](architecture/restaurant-os/README.md), [ADR-019](17-adr/ADR-019-tenant-isolation.md)). This document is updated when that design is approved.
+v1.1.0 adds the Restaurant OS roles, permissions, device credentials, staff PINs, QR guest tokens and tenant isolation (§3.5).
 
 ---
 
@@ -160,6 +160,17 @@ Notes:
 | WebSocket subscriptions | Same rules, applied on SUBSCRIBE |
 
 A foreign resource returns `404 NOT_FOUND`, not 403, for customer-owned objects, so existence is not revealed. IDOR tests are mandatory for every resource endpoint (REQ-QA-004).
+
+### 3.5 Restaurant OS (v1.1.0)
+| Topic | Rule |
+|---|---|
+| Roles | New outlet roles CASHIER, CAPTAIN, KITCHEN_STAFF and INVENTORY_MANAGER (brand or outlet scope), assigned per outlet (REQ-OUTLET-004). The permission catalogue and role matrix are in [restaurant-os README §5.1–5.2](architecture/restaurant-os/README.md#5-roles-permissions-and-devices-req-auth-003-v2-req-outlet-004007). JWT scopes keep the approved `RESTAURANT`/`BRANCH` types. |
+| Devices | POS terminals, captain handhelds and kitchen displays are paired with a one-time code (8 characters, 10-minute TTL). The device refresh token is stored hashed and rotated (ADR-008). Device tokens are limited to one branch and to the permissions of the device type. |
+| Staff PINs | 4–6 digits, hashed with Argon2id; five failures lock that PIN for 15 minutes. A PIN login yields a 15-minute token with the user's scopes ∩ the device's branch, so every action is attributed to person and device. |
+| Revocation | `DeviceRevoked` revokes the device token family and disconnects its sockets. Settle, void and refund also check a Redis deny-list, so revocation applies at once. |
+| QR guests | The printed QR carries a random `public_id` and a truncated HMAC-SHA256 MAC (key in the secret manager, rotatable). Guests verify by OTP and receive a `QR_GUEST` token scoped to one QR session (30-minute TTL, refreshable only while the session is active). QR ordering is rate-limited per guest and per session. Payment status only changes on the gateway webhook. |
+| Tenant isolation | Hibernate `@TenantId` plus PostgreSQL row-level security with `FORCE`; runtime roles never have `BYPASSRLS` ([ADR-019](17-adr/ADR-019-tenant-isolation.md)). Cross-tenant access returns `404 NOT_FOUND` (REQ-OUTLET-003 AC2). Events whose `restaurantId` doesn't match go to the DLT with an alert. |
+| Staff-attested payments | Cash, card terminal and static UPI are recorded by an authorised staff member (`POS_SETTLE`) with the device and person; dynamic UPI is confirmed only by webhook (REQ-PAYMENT-006). |
 
 ---
 

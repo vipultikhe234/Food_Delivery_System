@@ -1,7 +1,7 @@
 # ADR-019: Tenant isolation with an application guard and PostgreSQL row-level security
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-01
-- Deciders: Pending project owner approval
+- Deciders: Project owner (ROS design approved 2026-10-01)
 - Related requirements: REQ-OUTLET-002, REQ-OUTLET-003 (AC4 asks for this ADR), BR-R11, REQ-AUTH-003 v2
 
 ## Context

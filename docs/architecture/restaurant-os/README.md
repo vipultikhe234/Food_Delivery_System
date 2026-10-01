@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Version | 0.1.0 |
-| Status | **Proposed** 2026-10-01, awaiting project owner approval (ROS §31 design stage) |
+| Status | **Approved** 2026-10-01 by the project owner (design decisions D-01..D-23 as proposed) |
 | Requirements | [restaurant-os requirements](../../requirements/restaurant-os/README.md) (97 requirements), [IMPACT-0002](../../requirements/impact/IMPACT-0002.md), NFR-PERF-005..007 |
 | Depends on | [04](../../04-system-architecture.md), [05](../../05-microservices.md), [06](../../06-database-design.md), [07](../../07-api-design.md), [08](../../08-event-driven-architecture.md), [09](../../09-security.md), [order-state-machine](../order-state-machine.md) |
 | Constraint | Independent design. No commercial POS code, UI, branding, API or schema is copied (ROS preamble). |
@@ -20,7 +20,7 @@ This folder holds the design for the Restaurant OS addendum. It extends the appr
 | [POS_ARCHITECTURE.md](POS_ARCHITECTURE.md) | pos-service: areas, tables, sessions, held orders, devices and PINs, QR ordering, billing (computation, invoice numbering, split, merge, settlement, credit notes) |
 | [KITCHEN_ARCHITECTURE.md](KITCHEN_ARCHITECTURE.md) | kitchen-service: stations, routing, KOT generation and numbering, modifications, KDS states, order roll-up, printing |
 | [INVENTORY_ARCHITECTURE.md](INVENTORY_ARCHITECTURE.md) | inventory-service (stock items, ledger, consumption, costing, alerts, transfers, central kitchen, recipes) and procurement-service (suppliers, purchase orders, receipts, invoices, returns) |
-| ADRs (Proposed) | [ADR-018](../../17-adr/ADR-018-restaurant-os-services.md) service boundaries, [ADR-019](../../17-adr/ADR-019-tenant-isolation.md) tenant isolation, [ADR-020](../../17-adr/ADR-020-inventory-ledger-costing.md) inventory ledger and costing, [ADR-021](../../17-adr/ADR-021-shared-pricing-library.md) shared pricing library |
+| ADRs | [ADR-018](../../17-adr/ADR-018-restaurant-os-services.md) service boundaries, [ADR-019](../../17-adr/ADR-019-tenant-isolation.md) tenant isolation, [ADR-020](../../17-adr/ADR-020-inventory-ledger-costing.md) inventory ledger and costing, [ADR-021](../../17-adr/ADR-021-shared-pricing-library.md) shared pricing library |
 
 Each architecture document contains: responsibilities, a data model (mermaid ERD plus table notes), state machines, API contracts, events, sequence diagrams, concurrency rules, NFR notes and test obligations.
 
@@ -32,9 +32,9 @@ Each architecture document contains: responsibilities, a data model (mermaid ERD
 flowchart LR
     subgraph Clients
         POSAPP[POS web app<br/>web/apps/pos]
-        KDSAPP[KDS screens<br/>in web/apps/pos]
-        QRWEB[QR menu<br/>web/apps/customer /t/:token]
-        HQ[Restaurant dashboard<br/>web/apps/restaurant]
+        KDSAPP[KDS web app<br/>web/apps/kds]
+        QRWEB[QR menu<br/>web/apps/customer-web /t/:token]
+        HQ[Restaurant dashboard<br/>web/apps/restaurant-dashboard]
     end
     GW[api-gateway]
     POSAPP & KDSAPP & QRWEB & HQ --> GW
@@ -91,7 +91,7 @@ Solid arrows are synchronous REST calls (internal, service token). Dotted arrows
 | **analytics-service** (8095) | Extended (Phase 13E/17) | Restaurant operations reports (REQ-ANALYTICS-002), async report files in object storage | — |
 | **ai-service** (8099) | Extended (Phase 17) | Restaurant operations tools (REQ-AI-004), action proposals and approvals (REQ-AI-005) | Executes nothing itself: approved actions call the owning API with the approver's JWT |
 
-Deployables: 21 + 4 = **25**. The `web/apps/pos` PWA (ROS-OQ-15) serves both the POS and the KDS screens, so no extra web app is needed.
+Deployables: 21 + 4 = **25** backend services. Web apps: `web/apps/pos` (POS PWA, ROS-OQ-15) and `web/apps/kds` (kitchen display) are separate apps sharing the design system (REQ-WEB-002 v2 AC4); the QR menu is part of `web/apps/customer-web`.
 
 ### 1.1 Synchronous calls (new)
 
@@ -180,7 +180,7 @@ Consumer legend: ORD order, POS pos, KIT kitchen, INV inventory, PROC procuremen
 | pos | `TableSessionStatusChanged` (new) | tableSessionId, status (`OPEN`/`BILLING`/`CLOSED`/`MERGED`/`VOIDED`), version | ORD (session projection for T27/T33 guards) | REQ-POS-007 |
 | pos | `PosSettingsChanged` (new) | branchId, changed settings (no secrets) | KIT (late thresholds), ORD (QR auto-accept, acceptance window) | REQ-BILL-009, REQ-QR-005 |
 | kitchen | `KOTCreated` | kotId, kotNumber, orderId, round, stationId, type (`ORIGINAL`/`MODIFICATION`), items[], priority, version | RT, AN | REQ-KOT-002/003 |
-| kitchen | `KOTUpdated` | kotId, status, itemStatuses[], version, actor | RT, AN (prep times) | REQ-KDS-003 |
+| kitchen | `KOTUpdated` | kotId, status, itemStatuses[], version, actor | RT, AN (prep times), INV (waste for `MODIFIED` with reachedPreparing) | REQ-KDS-003 |
 | kitchen | `KOTCancelled` | kotId, orderId, reasonCode, **reachedPreparing**, items[] | RT, INV (waste when reachedPreparing) | REQ-KOT-004, ROS-OQ-09 |
 | kitchen | `KOTReprinted` | kotId, reprintNo, actor | AU | REQ-KOT-005 |
 | kitchen | `OrderKitchenStatusChanged` (new) | orderId, rollup (`PREPARING`/`READY`/`SERVED`), roundsCovered[] | ORD (T11, T13, T28) | REQ-KDS-003 AC3 |
@@ -292,14 +292,14 @@ Every pushed message carries the aggregate `version`. Clients drop messages olde
 | 13C | inventory-service: stock items, ledger, consumption, costing, alerts, recipes; inventory-linked availability (REQ-MENU-009) |
 | 13D | procurement-service; transfers and central kitchen (REQ-OUTLET-005); sub-recipes and production (REQ-RECIPE-006) |
 | 13E | QR ordering; restaurant operations reports (REQ-ANALYTICS-002); HQ reporting (REQ-OUTLET-006) |
-| 14 | POS and KDS screens in `web/apps/pos`; HQ screens in `web/apps/restaurant` |
+| 14 | POS app `web/apps/pos`; KDS app `web/apps/kds`; HQ screens in `web/apps/restaurant-dashboard`; QR menu in `web/apps/customer-web` |
 | 17 | REQ-AI-004/005 in ai-service |
 
 ---
 
-## 8. Design decisions to approve
+## 8. Design decisions
 
-These choices go beyond what the requirements fix. Each one is explained in the referenced document.
+These choices go beyond what the requirements fix. Each one is explained in the referenced document. All were approved as proposed on 2026-10-01, including D-23 (keep READY with an alert, no requirement change).
 
 | ID | Decision | Where |
 |---|---|---|
