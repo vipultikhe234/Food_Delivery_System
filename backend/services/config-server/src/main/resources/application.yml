@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    # native = local directory (Compose mounts infrastructure/config-repo); git = cloud environments
+    active: ${CONFIG_BACKEND:native}
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: ${CONFIG_REPO_LOCATION:}
+        git:
+          uri: ${CONFIG_GIT_URI:}
+          default-label: ${CONFIG_GIT_LABEL:main}
+          search-paths: ${CONFIG_GIT_SEARCH_PATHS:infrastructure/config-repo}
+          clone-on-start: true
+  security:
+    user:
+      # No defaults: the server refuses to start without credentials (REQ-PLAT-003 AC4).
+      name: ${CONFIG_SERVER_USER}
+      password: ${CONFIG_SERVER_PASSWORD}
+      roles: CONFIG_CLIENT
+
+server:
+  port: ${SERVER_PORT:8888}
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:9888}
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

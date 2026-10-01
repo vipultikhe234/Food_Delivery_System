@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: service-discovery
+
+server:
+  port: ${SERVER_PORT:8761}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+  client:
+    # Single instance locally. Production runs 2 peers: set EUREKA_PEER_REPLICATION=true and
+    # EUREKA_PEER_URLS to the other peers (docs/05-microservices.md §2.2).
+    register-with-eureka: ${EUREKA_PEER_REPLICATION:false}
+    fetch-registry: ${EUREKA_PEER_REPLICATION:false}
+    service-url:
+      defaultZone: ${EUREKA_PEER_URLS:http://localhost:8761/eureka/}
+  server:
+    # Removal budget for a crashed instance (REQ-PLAT-002 AC2, 30 s): Eureka evicts after about
+    # twice the 6 s lease, plus the 3 s eviction timer, the 3 s response cache and the clients'
+    # 3 s registry fetch and 3 s load-balancer cache. Must match the client lease settings in
+    # infrastructure/config-repo/application.yml. Self-preservation stays off locally.
+    enable-self-preservation: ${EUREKA_SELF_PRESERVATION:false}
+    expected-client-renewal-interval-seconds: 3
+    eviction-interval-timer-in-ms: 3000
+    response-cache-update-interval-ms: 3000
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:9761}
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

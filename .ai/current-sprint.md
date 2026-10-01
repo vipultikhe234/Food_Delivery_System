@@ -1,6 +1,29 @@
 # Current Sprint
 
 ```text
+TASK ID:            TASK-PHASE4A-001
+REQUIREMENT ID:     REQ-PLAT-001, REQ-PLAT-002, REQ-PLAT-003, REQ-OBS-001, REQ-DEVOPS-001 (release v0.1.0 Foundation)
+CURRENT STATUS:     DEVELOPMENT (recorded in requirements.json); Phase 4A done locally, awaiting review.
+                    Phase 4B (REQ-PLAT-004..008) not started.
+WHAT WAS CHANGED:   backend/platform/common-observability (JSON logging, PII masking, correlation ID, tracing
+                    defaults); backend/services/config-server (native backend, HTTP Basic), service-discovery
+                    (Eureka, fast eviction), api-gateway (routes, JWT via JWKS, CORS, security headers, correlation,
+                    access log, error handler); infrastructure/config-repo; backend/Dockerfile;
+                    infrastructure/docker (Compose profiles infra/media/platform/observability, Postgres init,
+                    observability configs); .env.example; README; docs 05 -> v1.1.1, 13 -> v1.1.0
+DATABASE CHANGES:   Local Postgres init script only (one database plus owner/app roles per service)
+API CHANGES:        Gateway route table (docs/05 §1.2, infrastructure/config-repo/api-gateway.yml)
+TESTS EXECUTED:     mvnw verify BUILD SUCCESS: common-observability 32, config-server 3, service-discovery 1,
+                    api-gateway 16 (incl. load balancing across 2 instances); requirements validator OK;
+                    docker compose config for all profiles; manual local run of the three services as jars
+                    (probes, auth, 401/503 bodies, headers, Eureka registration, crash removal 15.2 s)
+NOT EXECUTED:       Image build, compose up, Testcontainers, Loki traceId search (KI-021); graceful
+                    deregistration (KI-023); GitHub Actions for this change (not pushed)
+KNOWN ISSUES:       KI-018..023 (new), KI-006..009, KI-011, KI-012, KI-014..017
+NEXT ACTION:        Owner decides KI-019 (error format) and approves docs 05 v1.1.1 / 13 v1.1.0; then Phase 4B
+```
+
+```text
 TASK ID:            TASK-ROS-002
 REQUIREMENT ID:     Restaurant OS addendum (97 requirements, IMPACT-0002), NFR-PERF-005..007
 CURRENT STATUS:     Design APPROVED 2026-10-01 by the project owner (decisions D-01..D-23 as proposed; D-23 keeps a

@@ -1,0 +1,3 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+com.fooddelivery.platform.observability.logging.StructuredLoggingEnvironmentPostProcessor,\
+com.fooddelivery.platform.observability.tracing.TracingDefaultsEnvironmentPostProcessor

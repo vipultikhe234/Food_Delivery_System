@@ -2,12 +2,14 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0.0 |
-| Status | **Approved** 2026-10-01 |
+| Version | 1.1.0 |
+| Status | **Approved** 2026-10-01 (v1.1.0: Phase 4 implementation decisions, approved by the project owner) |
 | Depends on | [ADR-011](17-adr/ADR-011-discovery-and-config.md), [ADR-016](17-adr/ADR-016-aws.md) |
 | Requirements | REQ-DEVOPS-001..005, NFR-DEPLOY-001, NFR-SEC-002 |
 
 MP rule: **never deploy directly from a local machine.** Every deployment to development, staging or production goes through the CI/CD pipeline.
+
+v1.1.0 (Phase 4): ClamAV moves from `infra` to the optional `media` profile; the `observability` profile adds Grafana Alloy to ship container logs to Loki; MinIO uses the pinned `bitnamilegacy/minio` image because the official image is no longer published (KI-018); all backend services share one parameterised Dockerfile; config-server requires HTTP Basic authentication (REQ-PLAT-003).
 
 ---
 
@@ -15,7 +17,7 @@ MP rule: **never deploy directly from a local machine.** Every deployment to dev
 
 | Env | Purpose | Runtime | Data | Deploy trigger | Cost policy (ADR-016) |
 |---|---|---|---|---|---|
-| local | Developer machine | Docker Compose profiles | Containers (PostgreSQL+PostGIS, Redis, Kafka KRaft, MinIO, Mailpit, ClamAV) | `docker compose up` | — |
+| local | Developer machine | Docker Compose profiles | Containers (PostgreSQL+PostGIS, Redis, Kafka KRaft, MinIO, Mailpit; ClamAV optional) | `docker compose up` | — |
 | dev | Integration of merged work | EKS namespace `dev` (small node group) or a single VM with Compose | Shared small RDS (one instance, many databases), one Redis, single-broker Kafka | Automatic on merge to `main` | Scale to zero outside working hours |
 | staging | Production-like verification: E2E, performance, DAST, DR drills, UAT | EKS `staging` (Terraform, **on demand**) | RDS Multi-AZ, ElastiCache, MSK (3 brokers) | Automatic after dev succeeds, for release candidates | Created for verification windows, destroyed afterwards |
 | production | Live | EKS multi-AZ (3 AZs) | RDS Multi-AZ per critical service group, ElastiCache replication groups, MSK 3 brokers, S3 + CloudFront | Manual approval (GitHub Environment protection) | Minimal footprint, HPA |
@@ -26,13 +28,14 @@ MP rule: **never deploy directly from a local machine.** Every deployment to dev
 
 | Profile | Services |
 |---|---|
-| `infra` | postgres (PostGIS, init script creates one database and user per service from env), redis, kafka (KRaft) + kafka-ui, minio, mailpit, clamav |
+| `infra` | postgres (PostGIS, init script creates one database and user per service from env), redis, kafka (KRaft) + kafka-ui, minio, mailpit |
+| `media` | clamav (optional; media-service virus scanning) |
 | `platform` | config-server, service-discovery, api-gateway |
 | `core` | identity, user, audit, restaurant, menu, media |
 | `commerce` | cart, promotion, order, payment |
 | `fulfilment` | delivery, location, notification, realtime |
 | `insights` | review, search, analytics, admin, recommendation, ai |
-| `observability` | otel-collector, prometheus, grafana, loki, tempo |
+| `observability` | otel-collector, prometheus, grafana, loki, tempo, alloy (log shipping) |
 | `all` | everything |
 
 - `.env.example` lists every variable with placeholder values. `.env` is git-ignored.
@@ -42,7 +45,7 @@ MP rule: **never deploy directly from a local machine.** Every deployment to dev
 
 ## 3. Container images
 
-- Multi-stage build: Maven build stage (with cached `~/.m2`), Spring Boot **layered jar** extraction, runtime on `eclipse-temurin:21-jre` (or distroless java21).
+- Multi-stage build: Maven build stage (with cached `~/.m2`), Spring Boot **layered jar** extraction, runtime on `eclipse-temurin:21-jre` (or distroless java21). One shared `backend/Dockerfile` takes the service name and management port as build arguments.
 - Runs as non-root UID 10001, read-only root filesystem (writable `/tmp` emptyDir), `HEALTHCHECK` for Compose, `JAVA_TOOL_OPTIONS` with container-aware memory and the OTel agent.
 - **Tags:** `<service>:<git-sha>` (immutable) plus `<service>:<semver>` on release. `latest` is never used in Kubernetes.
 - Images are scanned with Trivy, an SBOM is produced (CycloneDX), and images are signed with cosign (keyless OIDC). Registry: ECR with scan-on-push and immutable tags.
