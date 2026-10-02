@@ -7,8 +7,8 @@
 | Phase 3: Repository structure | **Done** 2026-10-01, awaiting review (monorepo skeleton, backend parent POM and platform modules, Maven wrapper, pnpm workspace, requirements validator, CI workflows, git hooks) |
 | Restaurant OS addendum: requirements | **Approved** 2026-10-01 and registered in `requirements.json` ([restaurant-os/](requirements/restaurant-os/README.md), [IMPACT-0002](requirements/impact/IMPACT-0002.md)) |
 | Restaurant OS addendum: design | **Approved** 2026-10-01 ([architecture/restaurant-os/](architecture/restaurant-os/README.md), ADR-018..021, decisions D-01..D-23 as proposed) |
-| Phase 4A: Infrastructure (Compose, config, discovery, gateway, logging) | **In review** 2026-10-01: `mvnw verify` green; Compose stack not yet run (Docker unavailable, KI-021); docs 05 v1.1.1 and 13 v1.1.0 approved; error format decided ([IMPACT-0003](requirements/impact/IMPACT-0003.md)) |
-| Phase 4B: Platform libraries (errors, persistence, events/outbox, idempotency, resilience) | Next |
+| Phase 4A: Infrastructure (Compose, config, discovery, gateway, logging) | **Merged** into `main` 2026-10-01 (PR #1, ci-backend green); Compose stack not yet run (Docker unavailable, KI-021); docs 05 v1.1.1 and 13 v1.1.0 approved; error format decided ([IMPACT-0003](requirements/impact/IMPACT-0003.md)) |
+| Phase 4B: Platform libraries (errors, persistence, events/outbox, idempotency, resilience) | **In review** 2026-10-02: `mvnw verify` green (123 tests, 23 Docker tests run in CI only); docs 06 and 08 v1.1.1 pending approval |
 
 ## Requirements (sources of truth)
 | # | Document | Content |

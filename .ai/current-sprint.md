@@ -1,10 +1,39 @@
 # Current Sprint
 
 ```text
+TASK ID:            TASK-PHASE4B-001
+REQUIREMENT ID:     REQ-PLAT-004 (v2), REQ-PLAT-005, REQ-PLAT-006, REQ-PLAT-007, REQ-PLAT-008 (release v0.1.0)
+CURRENT STATUS:     DEVELOPMENT (recorded in requirements.json). Code complete on feature/phase-4b-platform-libraries;
+                    Docker-backed tests not yet executed anywhere (local: no WSL; CI: needs a PR)
+WHAT WAS CHANGED:   platform/test-support (@RequiresDocker: skipped locally without Docker, always on in CI; pinned
+                    PostGIS/Kafka containers); common-web (error catalogue, RFC 9457 advice and /error controller, web
+                    defaults, resilient RestClient factory); common-persistence (UUIDv7, BaseEntity, Money, JPA auditing,
+                    per-feature platform migrations, IdempotencyService); common-events (envelope + JSON Schema,
+                    OutboxPublisher/OutboxRelay, IdempotentEventProcessor, retry + DLT, topic helper, Kafka defaults);
+                    ci-backend "Report test results" step (failing tests as annotations, totals as a notice);
+                    .gitleaksignore (KI-024); config-server CSRF re-enabled (KI-027); docs 06 and 08 -> v1.1.1
+COMMITS:            7d0ee88 common-web, 3e5d1c1 common-persistence, 50794c3 common-events, plus the verify commit
+DATABASE CHANGES:   Platform migrations db/fdp/{idempotency,outbox,consumer}/V1 (idempotency_keys + response_headers,
+                    outbox_events, processed_events), each with its own Flyway history table
+API CHANGES:        None to endpoints. Error body is RFC 9457 (REQ-PLAT-004 v2); Idempotency-Key handling available
+TESTS EXECUTED:     mvnw verify BUILD SUCCESS (2026-10-02): 123 run, 0 failures, 23 skipped (Docker). Per module:
+                    common-observability 32, common-web 21, test-support 2, common-persistence 12 (+15 skipped),
+                    common-events 13 (+8 skipped), config-server 4 (incl. CSRF 403), service-discovery 1, api-gateway 16.
+                    Requirements validator OK incl. history check against origin/main. gitleaks 8.30.1 history scan clean.
+                    CI evidence for Phase 4A: ci-backend verify green on acc18ce
+NOT EXECUTED:       DatabaseIsolationTest (4), PersistenceIntegrationTest (11), EventsIntegrationTest (8): need Docker
+                    (KI-021); they run in ci-backend once a PR exists. Compose stack still not run
+DECISIONS NEEDED:   Branch flow (KI-025); approve docs 06/08 v1.1.1; dismiss the 2 gateway CodeQL alerts (KI-027)
+KNOWN ISSUES:       KI-024..027 (new), KI-014, KI-015, KI-021 updated
+NEXT ACTION:        Open the 4B PR, read ci-backend annotations, fix anything the Docker tests find; then Phase 4
+                    exit check (Compose stack runs + CI green) once Docker works
+```
+
+```text
 TASK ID:            TASK-PHASE4A-001
 REQUIREMENT ID:     REQ-PLAT-001, REQ-PLAT-002, REQ-PLAT-003, REQ-OBS-001, REQ-DEVOPS-001 (release v0.1.0 Foundation)
-CURRENT STATUS:     DEVELOPMENT (recorded in requirements.json); Phase 4A done locally, awaiting review.
-                    Phase 4B (REQ-PLAT-004..008) not started.
+CURRENT STATUS:     DEVELOPMENT (recorded in requirements.json). Merged into main by the owner via PR #1 on
+                    2026-10-01 (merge b73f65f); ci-backend green on acc18ce.
 WHAT WAS CHANGED:   backend/platform/common-observability (JSON logging, PII masking, correlation ID, tracing
                     defaults); backend/services/config-server (native backend, HTTP Basic), service-discovery
                     (Eureka, fast eviction), api-gateway (routes, JWT via JWKS, CORS, security headers, correlation,

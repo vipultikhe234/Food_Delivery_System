@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.1.0 |
-| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design) |
+| Version | 1.1.1 |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design); v1.1.1 (Phase 4B implementation notes in §1, §5 and §6) **pending approval** |
 | Depends on | [ADR-002](17-adr/ADR-002-kafka.md), [ADR-005](17-adr/ADR-005-outbox-pattern.md), [ADR-007](17-adr/ADR-007-orchestrated-saga.md), [order-state-machine](architecture/order-state-machine.md) |
 | Requirements | REQ-PLAT-005, REQ-PLAT-006, REQ-ORDER-005, NFR-REL-001, NFR-CONS-003 |
 
@@ -13,7 +13,7 @@ v1.1.0 adds the topics `catalog.events.v1` (replacing the never-built `menu.even
 
 ## 1. Envelope
 
-Every message (event or command) uses the same JSON envelope, defined as a JSON Schema in `backend/platform/event-contracts/envelope.schema.json`:
+Every message (event or command) uses the same JSON envelope, defined as a JSON Schema in `backend/platform/event-contracts/src/main/resources/event-contracts/envelope.schema.json` (v1.1.1: moved onto the classpath so tests can load it):
 
 ```json
 {
@@ -182,6 +182,7 @@ realtime-service, which has no database, uses an in-memory LRU of recent event I
 - Alert when the DLT message count is greater than 0 (critical for order and payment topics) (12-observability.md).
 - The admin "DLT viewer" (Phase 14/20) lists messages with error details and allows **replay** after a fix. Replay is safe because consumers are idempotent.
 - DLT messages keep the original headers plus `x-exception-class`, `x-exception-message` (sanitised), `x-original-topic`, `x-original-offset` and `x-failed-at`.
+- **Implementation (v1.1.1):** `common-events` provides the blocking policy as the default listener error handler (`fdp.events.consumer.*`) and counts dead-lettered records in `events_dead_lettered_total{topic}`. Spring Kafka's own exception-message and stack-trace headers are not written, because they can contain personal data. The non-blocking retry topics are **not built yet**; order-insensitive consumers add them (Spring Kafka `@RetryableTopic`) when the first such consumer is implemented.
 
 ## 6. Outbox relay (ADR-005)
 
@@ -201,6 +202,7 @@ on send failure: attempts++, last_error, backoff; row stays unpublished
 
 - **Per-aggregate ordering:** rows for one aggregate are created in commit order. With `SKIP LOCKED` and several relay instances, two instances could publish events for the same aggregate out of order. To avoid this, the relay claims rows by **partition key hash ranges**: each instance takes a lease on a shard (`hashtext(partition_key) % 16`) using ShedLock-style leases. An alternative is a single active relay per service. The single relay is the v1 default because throughput (about 120 orders/s at design peak) is well within one relay's capacity.
 - Metrics: `outbox_pending_count`, `outbox_publish_latency_seconds`, `outbox_failures_total`. Alert when the oldest unpublished row is more than 60 s old.
+- **Implementation (v1.1.1):** the single active relay is enforced with a transaction-scoped PostgreSQL advisory lock (`pg_try_advisory_xact_lock`); other instances skip the run. Rows are read in `(created_at, id)` order and sent in that order; the run marks the acknowledged prefix and stops at the first failure, then backs off up to 30 s. Rows sent after a failure may reach Kafka unmarked and are sent again later, so consumers see a duplicate (harmless, §4) rather than an out-of-order event. The oldest-row age is exported as `outbox_oldest_unpublished_age_seconds` for the 60 s alert. Producer timeouts are shortened (`max.block.ms` 5 s, `delivery.timeout.ms` 15 s) because the relay holds a database transaction while it waits for acknowledgements.
 
 ## 7. Schema evolution
 

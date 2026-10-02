@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.1.0 |
-| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design) |
+| Version | 1.1.1 |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design); v1.1.1 (Phase 4B: §1.3 `idempotency_keys.response_headers` and platform migration history) **pending approval** |
 | Depends on | [ADR-003](17-adr/ADR-003-postgresql.md), [ADR-005](17-adr/ADR-005-outbox-pattern.md), [ADR-019](17-adr/ADR-019-tenant-isolation.md), [ADR-020](17-adr/ADR-020-inventory-ledger-costing.md), [05 Microservices](05-microservices.md) |
 | Requirements | REQ-PLAT-006, REQ-PLAT-008, plus the `databaseRequirements` of every requirement |
 
@@ -61,12 +61,15 @@ processed_events                    -- idempotent consumers (REQ-PLAT-005)
 idempotency_keys                    -- order, payment, refund (REQ-PLAT-006)
   user_id uuid, idem_key varchar(128), endpoint varchar(128), request_hash char(64),
   status varchar(16) CHECK IN ('IN_PROGRESS','COMPLETED'), response_status int NULL,
-  response_body jsonb NULL, created_at timestamptz, expires_at timestamptz
+  response_body jsonb NULL, response_headers jsonb NULL, created_at timestamptz, expires_at timestamptz
   PK (user_id, endpoint, idem_key)  -- same key + different hash → 422 IDEMPOTENCY_KEY_REUSED
+  -- response_headers (v1.1.1): Location and ETag, so a replayed 201 matches the original
 
 shedlock                            -- scheduled job leader election
   name varchar(64) PK, lock_until timestamptz, locked_at timestamptz, locked_by varchar(255)
 ```
+
+`outbox_events`, `processed_events` and `idempotency_keys` are created by the platform libraries (`common-events`, `common-persistence`) when a service enables the feature. Each feature keeps its own Flyway history table (`fdp_<feature>_schema_history`), so its versions never collide with the service's own `V<n>` migrations (v1.1.1).
 
 ---
 

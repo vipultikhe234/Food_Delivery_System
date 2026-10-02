@@ -387,7 +387,7 @@
     {
       "id": "REQ-PLAT-004",
       "title": "Standard API contract: error format and OpenAPI documentation",
-      "module": "PLAT", "version": 2, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 2, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §37", "MP §38"], "businessRequirement": ["BR-10"],
       "description": "Consistent error responses and complete OpenAPI documentation for every API.",
       "technicalRequirement": "Shared error library with @RestControllerAdvice; springdoc-openapi per service, aggregated at the gateway; generated TypeScript clients for web/mobile.",
@@ -407,17 +407,17 @@
       "securityRequirements": ["No sensitive data in error messages"],
       "performanceRequirements": [],
       "assignedAgent": "BackendAgent", "assignedDeveloper": null,
-      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
+      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-02",
       "changeHistory": [
         {"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"},
         {"version": 2, "date": "2026-10-01", "by": "BackendAgent", "status": "ANALYSIS", "summary": "AC1 aligned with the approved API design: RFC 9457 Problem Details extended with code, correlationId, timestamp and errors[]", "reason": "Phase 4A found v1 AC1 conflicted with docs/07-api-design.md §3 (KI-019)", "impactReport": "docs/requirements/impact/IMPACT-0003.md", "previousValues": {"acceptanceCriteria.AC1": "AC1: Every error response is {success:false, code, message, timestamp, traceId, details?} with a stable machine-readable code."}, "approvedBy": "Project owner (IMPACT-0003 approved 2026-10-01)"}
       ],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 2, "from": null, "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "New version created (versioning rule); IMPACT-0003"}, {"version": 2, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "IMPACT-0003 approved (error format decision at the Phase 4A checkpoint)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 2, "from": null, "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "New version created (versioning rule); IMPACT-0003"}, {"version": 2, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "IMPACT-0003 approved (error format decision at the Phase 4A checkpoint)"}, {"version": 2, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 4B: error catalogue and handler design per docs/07-api-design.md §3"}, {"version": 2, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 4B: platform/common-web (commit 7d0ee88). Local mvnw verify green: WebErrorIntegrationTest (9) covers RFC 9457 body with code/correlationId/timestamp (AC1), no stack trace/SQL/class names for unhandled, filter and container errors (AC2), field-level errors[] for body, parameter, header and type errors (AC3). Open: AC4 OpenAPI (springdoc) deferred to Phase 5 with the first business endpoints; AC5 is a process rule (REQ-RMS-004)."}]
     },
     {
       "id": "REQ-PLAT-005",
       "title": "Event backbone: versioned events, idempotent consumers, retry and DLT",
-      "module": "PLAT", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §12"], "businessRequirement": ["BR-10"],
       "description": "Kafka-based asynchronous communication with a standard event envelope and reliable consumption.",
       "technicalRequirement": "Kafka (KRaft). Topic per aggregate (e.g. order.events.v1) keyed by aggregateId; envelope {eventId, eventType, eventVersion, occurredAt, producer, aggregateType, aggregateId, correlationId, causationId, payload}; consumer group per service; retry topics with backoff; <topic>.dlt.",
@@ -437,14 +437,14 @@
       "securityRequirements": ["Kafka ACLs per service principal in staging/production"],
       "performanceRequirements": ["Consumer lag monitored (REQ-OBS-002)"],
       "assignedAgent": "BackendAgent", "assignedDeveloper": null,
-      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
+      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-02",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 4B: envelope, consumer and retry design per docs/08 §1, §4, §5"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 4B: platform/common-events and event-contracts/envelope.schema.json (commit 50794c3). Local: 13 unit tests green (envelope vs schema, tolerant reader, sanitised DLT headers, wiring). NOT EXECUTED locally (no Docker; run in CI): EventsIntegrationTest for envelope and headers (AC1), duplicate delivery (AC2), per-aggregate order (AC3), poison message and retried failure to <topic>.dlt with events.dead.lettered metric (AC4). Open: non-blocking retry topics for order-insensitive consumers (docs/08 §5) not built; alert rule on the DLT metric in Phase 20; AC5 schema compatibility CI check when the first event schemas are added."}]
     },
     {
       "id": "REQ-PLAT-006",
       "title": "Transactional outbox and idempotency keys",
-      "module": "PLAT", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §13", "REF p.6"], "businessRequirement": ["BR-04", "BR-10"],
       "description": "State changes and their events are committed atomically; mutating APIs are safe to retry.",
       "technicalRequirement": "Outbox table written in the same local transaction as the state change; relay publishes to Kafka. Idempotency-Key header stored with request hash and response.",
@@ -464,14 +464,14 @@
       "securityRequirements": ["Idempotency keys scoped per user"],
       "performanceRequirements": ["Outbox relay publish delay p95 < 1 s (PROPOSED)"],
       "assignedAgent": "BackendAgent", "assignedDeveloper": null,
-      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
+      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-02",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 4B: outbox relay per docs/08 §6 (advisory-lock single relay) and idempotency flow per docs/07 §5; idempotency_keys gains response_headers (docs/06 §1.3 v1.1.1, pending approval)"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 4B: OutboxPublisher/OutboxRelay in platform/common-events (commit 50794c3), IdempotencyService in platform/common-persistence (commit 3e5d1c1). Local: unit tests green (key validation, transaction guard, wiring). NOT EXECUTED locally (no Docker; run in CI): Kafka-pause failure test (AC1), replay without re-execution (AC3), 422 on reuse (AC4), expiry and purge (AC5), concurrent duplicate 409, per-user scope and release on failure. Open: AC2 applies when order, payment, refund and wallet endpoints are built (Phases 8-9); relay p95 < 1 s measured in Phase 21."}]
     },
     {
       "id": "REQ-PLAT-007",
       "title": "Resilience for synchronous calls",
-      "module": "PLAT", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §40"], "businessRequirement": ["BR-10"],
       "description": "Synchronous dependencies are protected with timeouts, retries and circuit breakers where justified.",
       "technicalRequirement": "Resilience4j applied per call site with a documented reason; bulkheads only for external providers.",
@@ -490,14 +490,14 @@
       "securityRequirements": [],
       "performanceRequirements": [],
       "assignedAgent": "BackendAgent", "assignedDeveloper": null,
-      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
+      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-02",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 4B: client policy per docs/14 §6 (timeouts, idempotent-only retry with jitter, breaker, bulkhead)"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 4B: ResilientRestClients in platform/common-web (commit 7d0ee88). Local mvnw verify green: ResilientRestClientsTest (10) with a scripted fault server instead of WireMock (no extra dependency): read timeout (AC1), 5xx and timeout retried only for GET or Idempotency-Key requests, never 4xx, jittered backoff (AC3), breaker opens and fails fast, bulkhead full, retry and breaker metrics (AC4). Open: AC2 breakers and fallbacks are applied per provider adapter as payment, maps, notification and LLM clients are built."}]
     },
     {
       "id": "REQ-PLAT-008",
       "title": "Persistence standards: database-per-service, migrations, audit columns, optimistic locking",
-      "module": "PLAT", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
+      "module": "PLAT", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 4, "targetRelease": "v0.1.0",
       "source": ["MP §9", "MP §10"], "businessRequirement": ["BR-10"],
       "description": "Each service owns its PostgreSQL database with versioned, backward-compatible migrations.",
       "technicalRequirement": "PostgreSQL per service (PostGIS where geospatial); Flyway; JPA base entity with id (UUID), created_at, updated_at, created_by, updated_by, version (@Version).",
@@ -517,9 +517,9 @@
       "securityRequirements": ["Least-privilege DB users per service"],
       "performanceRequirements": ["Connection pool sizing documented per service"],
       "assignedAgent": "DatabaseAgent", "assignedDeveloper": null,
-      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
+      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-02",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-02", "by": "DatabaseAgent", "reason": "Phase 4B: conventions per docs/06 §1.1-1.3; per-feature Flyway history for platform tables"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 4B: platform/common-persistence (commit 3e5d1c1): UUIDv7 ids, audited BaseEntity with @Version, Money numeric(12,2)+char(3), validate-only schema defaults. Local: UuidV7Test, MoneyTest (AC5) and unit tests green. NOT EXECUTED locally (no Docker; run in CI): DatabaseIsolationTest over the Compose init script (AC1: app and owner roles denied on other databases, app role has DML but no DDL), PersistenceIntegrationTest for automatic Flyway runs and history tables (AC2), base columns filled (AC3), stale version -> 409 CONCURRENT_MODIFICATION (AC4), money column types (AC5). Open: expand/contract is a review rule per migration (AC2); connection pool sizing per service as services are built."}]
     },
     {
       "id": "REQ-AUTH-001",
