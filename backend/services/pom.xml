@@ -17,6 +17,7 @@
         <module>config-server</module>
         <module>service-discovery</module>
         <module>api-gateway</module>
+        <module>identity-service</module>
     </modules>
 
     <build>

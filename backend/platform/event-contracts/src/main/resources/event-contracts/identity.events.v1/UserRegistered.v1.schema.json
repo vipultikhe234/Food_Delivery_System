@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.fooddelivery.example/event-contracts/identity.events.v1/UserRegistered.v1.schema.json",
+  "title": "UserRegistered v1 payload",
+  "description": "Published by identity-service when an account is created (REQ-AUTH-001). user-service creates the profile from it. Contact details are deliberately absent (docs/08 section 1: minimal PII).",
+  "type": "object",
+  "required": ["userId", "fullName", "roles"],
+  "additionalProperties": false,
+  "properties": {
+    "userId": { "type": "string", "format": "uuid" },
+    "fullName": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "roles": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Z][A-Z_]{1,63}$" },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  }
+}

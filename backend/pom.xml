@@ -29,6 +29,8 @@
 
         <!-- Spring Cloud 2025.1.x supports Spring Boot >= 4.0.0 and < 4.2.0 (checked 2026-10-01) -->
         <spring-cloud.version>2025.1.3</spring-cloud.version>
+        <!-- Argon2id for Spring Security's Argon2PasswordEncoder (docs/09-security.md §2.1); not managed by Spring Boot -->
+        <bouncycastle.version>1.86</bouncycastle.version>
 
         <spotless-maven-plugin.version>3.10.3</spotless-maven-plugin.version>
         <!-- 1.37.0 fails inside spotless-maven-plugin 3.10.3 (InvocationTargetException in the Javadoc formatter); 1.36.1 is the plugin's default -->
@@ -85,6 +87,11 @@
                 <groupId>com.fooddelivery</groupId>
                 <artifactId>test-support</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

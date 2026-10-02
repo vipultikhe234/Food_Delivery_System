@@ -2,8 +2,8 @@
 #
 #   docker compose --env-file .env -f infrastructure/docker/docker-compose.yml --profile infra --profile platform up -d
 #
-# Profiles: infra, media (ClamAV), platform, observability, all. Services added in later phases join
-# core / commerce / fulfilment / insights. Ports bind to 127.0.0.1 only. Every credential comes from
+# Profiles: infra, media (ClamAV), platform, core (identity-service), observability, all. Services added
+# in later phases join core / commerce / fulfilment / insights. Ports bind to 127.0.0.1 only. Every credential comes from
 # .env (copy .env.example); Compose refuses to start when a required one is missing.
 
 name: fooddelivery
@@ -197,6 +197,41 @@ services:
     ports:
       - "${GATEWAY_BIND_ADDRESS:-127.0.0.1}:8080:8080"
     depends_on:
+      config-server:
+        condition: service_healthy
+      service-discovery:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------- core
+  identity-service:
+    <<: *java-service
+    image: fooddelivery/identity-service:local
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE: identity-service
+        MANAGEMENT_PORT: "9081"
+    profiles: [core, all]
+    environment:
+      <<: *java-env
+      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_USER: ${CONFIG_SERVER_USER:?set CONFIG_SERVER_USER in .env}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD:?set CONFIG_SERVER_PASSWORD in .env}
+      EUREKA_URL: http://service-discovery:8761/eureka/
+      DB_URL: jdbc:postgresql://postgres:5432/identity_db
+      DB_APP_PASSWORD: ${LOCAL_DB_APP_PASSWORD:?set LOCAL_DB_APP_PASSWORD in .env}
+      DB_OWNER_PASSWORD: ${LOCAL_DB_OWNER_PASSWORD:?set LOCAL_DB_OWNER_PASSWORD in .env}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      # Local only: a new RSA key on every start, so tokens from an earlier run stop validating.
+      JWT_EPHEMERAL_KEY: "true"
+    ports:
+      - "127.0.0.1:8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
       config-server:
         condition: service_healthy
       service-discovery:

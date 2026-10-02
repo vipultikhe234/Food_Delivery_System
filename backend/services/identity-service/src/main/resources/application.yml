@@ -1,0 +1,46 @@
+# Bootstrap settings only. Token lifetimes and the shared JWT issuer/audience come from config-server
+# (infrastructure/config-repo/identity-service.yml and application.yml). Credentials and the signing
+# key come from the environment only and have no defaults.
+spring:
+  application:
+    name: identity-service
+  config:
+    import: ${CONFIG_IMPORT:optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}}
+  cloud:
+    config:
+      fail-fast: ${CONFIG_FAIL_FAST:true}
+      username: ${CONFIG_SERVER_USER:}
+      password: ${CONFIG_SERVER_PASSWORD:}
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/identity_db}
+    # Runtime role: DML only (docs/06 §1.1)
+    username: ${DB_APP_USER:identity_app}
+    password: ${DB_APP_PASSWORD}
+  flyway:
+    # Migrations run as the owner role
+    user: ${DB_OWNER_USER:identity_owner}
+    password: ${DB_OWNER_PASSWORD}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
+  # Client IP for the session list: X-Forwarded-For is honoured only from internal proxy addresses.
+  forward-headers-strategy: native
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:9081}
+
+fdp:
+  events:
+    outbox:
+      enabled: true
+  identity:
+    jwt:
+      # PKCS#8 PEM of the RSA signing key (secret manager in staging/prod).
+      signing-key: ${JWT_SIGNING_KEY:}
+      # Only for a developer machine without a key: a throwaway key is generated at startup and
+      # every token becomes invalid on restart. Refused when FDP_ENVIRONMENT is staging or prod.
+      ephemeral-key: ${JWT_EPHEMERAL_KEY:false}

@@ -1,0 +1,13 @@
+# identity-service settings (REQ-AUTH-001; docs/09-security.md §2.2). Non-secret values only: the
+# signing key and database credentials come from the environment.
+
+fdp:
+  identity:
+    tokens:
+      # PROPOSED values in REQ-AUTH-001
+      access-token-ttl: 15m
+      refresh-token-ttl: 30d
+    events:
+      # identity.events.v1: 6 partitions in production, 1 locally (docs/08 §2)
+      partitions: ${IDENTITY_EVENTS_PARTITIONS:1}
+      replicas: ${KAFKA_REPLICATION_FACTOR:1}
