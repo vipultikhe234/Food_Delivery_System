@@ -1,0 +1,7 @@
+# Reviewed false positives (fingerprint = commit:file:rule:line). Add an entry only after checking
+# the value is a synthetic test fixture, never to silence a real credential.
+
+# Synthetic JWT {"sub":"user-1","exp":1700000000} with signature text "signature-value"
+63b97483c7da5fe36c9811943f0cde6540d5e526:backend/platform/common-observability/src/test/java/com/fooddelivery/platform/observability/logging/PiiMaskerTest.java:jwt:37
+# Test correlation id "corr-9876543210-x"
+63b97483c7da5fe36c9811943f0cde6540d5e526:backend/platform/common-observability/src/test/java/com/fooddelivery/platform/observability/logging/StructuredLoggingIntegrationTest.java:generic-api-key:35

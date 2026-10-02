@@ -72,6 +72,27 @@ class ConfigServerApplicationTest {
   }
 
   @Test
+  void stateChangingRequestsWithoutACsrfTokenAreRejectedEvenWithValidCredentials()
+      throws Exception {
+    try (ConfigurableApplicationContext context = start(repoLocation(), true)) {
+      int port = ((WebServerApplicationContext) context).getWebServer().getPort();
+
+      HttpResponse<String> response;
+      try (HttpClient client = HttpClient.newHttpClient()) {
+        response =
+            client.send(
+                HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/encrypt"))
+                    .header("Authorization", basic(USER, PASSWORD))
+                    .POST(HttpRequest.BodyPublishers.ofString("value"))
+                    .build(),
+                HttpResponse.BodyHandlers.ofString());
+      }
+
+      assertThat(response.statusCode()).isEqualTo(403);
+    }
+  }
+
+  @Test
   void failsFastWhenRequiredSettingsAreMissing() {
     assertThatThrownBy(() -> start("", true).close())
         .hasStackTraceContaining("must be set (CONFIG_REPO_LOCATION)");

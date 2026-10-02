@@ -32,7 +32,8 @@ class StructuredLoggingIntegrationTest {
       Tracer tracer = context.getBean(Tracer.class);
       Span span = tracer.nextSpan().name("test").start();
       try (Tracer.SpanInScope ignored = tracer.withSpan(span);
-          MDC.MDCCloseable c = MDC.putCloseable(CorrelationId.MDC_KEY, "corr-9876543210-x")) {
+          MDC.MDCCloseable c =
+              MDC.putCloseable(CorrelationId.MDC_KEY, "corr-9876543210-x")) { // gitleaks:allow
         log.info("otp sent to 9876543210 for rahul@example.com");
       } finally {
         span.end();

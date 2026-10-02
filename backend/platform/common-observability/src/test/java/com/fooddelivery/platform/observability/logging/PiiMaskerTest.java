@@ -34,7 +34,7 @@ class PiiMaskerTest {
   @Test
   void masksRawJwt() {
     String jwt =
-        "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyLTEiLCJleHAiOjE3MDAwMDAwMDB9.c2lnbmF0dXJlLXZhbHVl";
+        "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyLTEiLCJleHAiOjE3MDAwMDAwMDB9.c2lnbmF0dXJlLXZhbHVl"; // gitleaks:allow
     assertThat(PiiMasker.mask("token " + jwt + " rejected")).isEqualTo("token **** rejected");
   }
 
