@@ -225,6 +225,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       # Local only: a new RSA key on every start, so tokens from an earlier run stop validating.
       JWT_EPHEMERAL_KEY: "true"
+      IDENTITY_BOOTSTRAP_SUPER_ADMIN: ${IDENTITY_BOOTSTRAP_SUPER_ADMIN:-}
     ports:
       - "127.0.0.1:8081:8081"
     depends_on:

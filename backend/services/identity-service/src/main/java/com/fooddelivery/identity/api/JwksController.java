@@ -1,6 +1,7 @@
 package com.fooddelivery.identity.api;
 
 import com.fooddelivery.identity.infrastructure.persistence.SigningKeyStore;
+import jakarta.annotation.security.PermitAll;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ class JwksController {
   }
 
   @GetMapping(value = "/.well-known/jwks.json", produces = MediaType.APPLICATION_JSON_VALUE)
+  @PermitAll
   ResponseEntity<Map<String, List<JsonNode>>> jwks() {
     List<JsonNode> published = keys.publishedKeys().stream().map(json::readTree).toList();
     return ResponseEntity.ok()

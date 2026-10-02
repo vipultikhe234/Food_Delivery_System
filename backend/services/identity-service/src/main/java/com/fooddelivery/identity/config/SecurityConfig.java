@@ -1,27 +1,28 @@
 package com.fooddelivery.identity.config;
 
+import com.fooddelivery.platform.security.ResourceServerSecurity;
+import com.fooddelivery.platform.security.UserJwtConverter;
 import jakarta.servlet.DispatcherType;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 /**
- * Only the token endpoints and the JWKS are public; everything else is denied until the endpoint
- * that needs it is built (deny by default, REQ-AUTH-003).
+ * The token endpoints and the JWKS are public; admin endpoints need a token and a permission
+ * declared on each method; everything else is denied until the endpoint that needs it is built
+ * (deny by default, REQ-AUTH-003).
  *
- * <p>CSRF protection stays on. The token endpoints are exempt because they authenticate with
- * credentials in the request body, never with cookies; the cookie-based web refresh will need the
- * double-submit token (REQ-SEC-002 AC4, KI-029).
+ * <p>The token endpoints are also exempt from CSRF because they authenticate with credentials in
+ * the request body, never with cookies; the cookie-based web refresh will need the double-submit
+ * token (REQ-SEC-002 AC4, KI-029).
  */
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
@@ -32,7 +33,8 @@ public class SecurityConfig {
   };
 
   @Bean
-  SecurityFilterChain identitySecurity(HttpSecurity http) throws Exception {
+  SecurityFilterChain identitySecurity(
+      HttpSecurity http, JwtDecoder jwtDecoder, UserJwtConverter converter) throws Exception {
     PathPatternRequestMatcher.Builder paths = PathPatternRequestMatcher.withDefaults();
     RequestMatcher tokenEndpoints =
         new OrRequestMatcher(
@@ -40,12 +42,8 @@ public class SecurityConfig {
                 .<RequestMatcher>map(path -> paths.matcher(HttpMethod.POST, path))
                 .toList());
 
-    return http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    return ResourceServerSecurity.apply(http, jwtDecoder, converter)
         .csrf(csrf -> csrf.ignoringRequestMatchers(tokenEndpoints))
-        .httpBasic(basic -> basic.disable())
-        .formLogin(form -> form.disable())
-        .logout(logout -> logout.disable())
-        .requestCache(cache -> cache.disable())
         .authorizeHttpRequests(
             auth ->
                 auth.dispatcherTypeMatchers(DispatcherType.ERROR)
@@ -56,20 +54,10 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info")
                     .permitAll()
+                    .requestMatchers("/api/v1/admin/**")
+                    .authenticated()
                     .anyRequest()
                     .denyAll())
-        // sendError routes through the problem+json error controller of common-web.
-        .exceptionHandling(
-            handling ->
-                handling
-                    .authenticationEntryPoint(
-                        (request, response, ex) -> {
-                          response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
-                          response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                        })
-                    .accessDeniedHandler(
-                        (request, response, ex) ->
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN)))
         .build();
   }
 }

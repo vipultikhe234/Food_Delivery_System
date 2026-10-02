@@ -3,9 +3,13 @@ package com.fooddelivery.identity.config;
 import com.fooddelivery.identity.application.UserRegistered;
 import com.fooddelivery.identity.infrastructure.persistence.SigningKeyStore;
 import com.fooddelivery.identity.infrastructure.token.AccessTokenIssuer;
+import com.fooddelivery.identity.infrastructure.token.PublishedKeysJwkSource;
 import com.fooddelivery.identity.infrastructure.token.SigningKey;
 import com.fooddelivery.identity.infrastructure.token.SigningKeyRegistrar;
 import com.fooddelivery.platform.events.EventTopics;
+import com.fooddelivery.platform.events.audit.AuditRecorded;
+import com.fooddelivery.platform.security.JwtProperties;
+import com.fooddelivery.platform.security.JwtValidation;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import java.time.Clock;
@@ -20,7 +24,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 @Configuration(proxyBeanMethods = false)
@@ -77,16 +84,31 @@ public class IdentityConfiguration {
 
   @Bean
   AccessTokenIssuer accessTokenIssuer(
-      JwtEncoder encoder,
-      SigningKey key,
-      TokenClaimsProperties claims,
-      IdentityProperties properties) {
+      JwtEncoder encoder, SigningKey key, JwtProperties claims, IdentityProperties properties) {
     return new AccessTokenIssuer(encoder, key, claims, properties.tokens());
+  }
+
+  /** Validates our own tokens against the published keys instead of calling our JWKS endpoint. */
+  @Bean
+  JwtDecoder jwtDecoder(SigningKeyStore store, Clock clock, JwtProperties claims) {
+    NimbusJwtDecoder decoder =
+        NimbusJwtDecoder.withJwkSource(new PublishedKeysJwkSource(store, clock))
+            .jwsAlgorithm(SignatureAlgorithm.RS256)
+            .build();
+    decoder.setJwtValidator(JwtValidation.validator(claims));
+    return decoder;
   }
 
   @Bean
   NewTopic identityEvents(IdentityProperties properties) {
     return EventTopics.topic(
         UserRegistered.TOPIC, properties.events().partitions(), properties.events().replicas());
+  }
+
+  /** Declared by every producer of audit records; creating an existing topic is a no-op. */
+  @Bean
+  NewTopic auditEvents(IdentityProperties properties) {
+    return EventTopics.topic(
+        AuditRecorded.TOPIC, properties.events().auditPartitions(), properties.events().replicas());
   }
 }

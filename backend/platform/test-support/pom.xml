@@ -10,7 +10,7 @@
 
     <artifactId>test-support</artifactId>
     <name>Food Delivery Platform :: test-support</name>
-    <description>Test-scope helpers: pinned Testcontainers images and the Docker guard used by integration tests</description>
+    <description>Test-scope helpers: pinned Testcontainers images, the Docker guard used by integration tests, the endpoint security rule</description>
 
     <dependencies>
         <dependency>
@@ -29,6 +29,27 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-kafka</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- EndpointSecurityRules: only services with web endpoints use it -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
             <optional>true</optional>
         </dependency>
 

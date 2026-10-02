@@ -3,6 +3,7 @@ package com.fooddelivery.identity.it;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import com.fooddelivery.identity.application.SuperAdminBootstrap;
 import com.fooddelivery.platform.testsupport.Containers;
 import com.fooddelivery.platform.testsupport.RequiresDocker;
 import java.io.InputStream;
@@ -62,11 +63,13 @@ import tools.jackson.databind.json.JsonMapper;
       "eureka.client.enabled=false",
       "MANAGEMENT_PORT=0",
       "JWT_EPHEMERAL_KEY=true",
+      "IDENTITY_BOOTSTRAP_SUPER_ADMIN=" + IdentityIntegrationTest.BOOTSTRAP_ADMIN,
       "fdp.events.outbox.poll-interval=100ms"
     })
 class IdentityIntegrationTest {
 
   static final String CONFIG_REPO = "../../../infrastructure/config-repo/";
+  static final String BOOTSTRAP_ADMIN = "platform.owner@example.com";
   private static final String PASSWORD = "correct horse battery staple";
   private static final Duration WAIT = Duration.ofSeconds(60);
 
@@ -86,6 +89,7 @@ class IdentityIntegrationTest {
   @LocalServerPort int port;
   @Autowired JdbcTemplate jdbc;
   @Autowired JsonMapper json;
+  @Autowired SuperAdminBootstrap superAdminBootstrap;
 
   private final HttpClient http = HttpClient.newHttpClient();
 
@@ -253,13 +257,7 @@ class IdentityIntegrationTest {
   void accessTokensVerifyAgainstThePublishedJwks() throws Exception {
     Response registered = register(uniqueEmail(), uniquePhone());
 
-    NimbusJwtDecoder decoder =
-        NimbusJwtDecoder.withJwkSetUri(uri("/.well-known/jwks.json").toString()).build();
-    decoder.setJwtValidator(
-        new DelegatingOAuth2TokenValidator<>(
-            JwtValidators.createDefaultWithIssuer("fooddelivery-identity"),
-            new JwtClaimValidator<List<String>>("aud", aud -> aud.contains("fooddelivery-api"))));
-    Jwt jwt = decoder.decode(registered.body().path("accessToken").asString());
+    Jwt jwt = decode(registered.body().path("accessToken").asString());
 
     assertThat(jwt.getSubject()).isEqualTo(registered.body().path("userId").asString());
     assertThat(jwt.getClaimAsStringList("roles")).containsExactly("CUSTOMER");
@@ -283,8 +281,121 @@ class IdentityIntegrationTest {
     assertThat(payload.path("userId").asString()).isEqualTo(userId);
     assertThat(payload.path("fullName").asString()).isEqualTo("Asha Rao");
     assertThat(new ArrayList<>(payload.propertyNames()))
-        .containsExactlyInAnyOrderElementsOf(schemaProperties());
+        .containsExactlyInAnyOrderElementsOf(
+            schemaProperties("/event-contracts/identity.events.v1/UserRegistered.v1.schema.json"));
     assertThat(record.value()).doesNotContain(email.toLowerCase(), phone);
+  }
+
+  @Test
+  void theRoleCatalogueIsSeeded() {
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM roles", Integer.class)).isEqualTo(11);
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM permissions", Integer.class))
+        .isEqualTo(69);
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM role_permissions", Integer.class))
+        .isEqualTo(170);
+    assertThat(
+            jdbc.queryForList(
+                "SELECT p.code FROM role_permissions rp"
+                    + " JOIN roles r ON r.id = rp.role_id"
+                    + " JOIN permissions p ON p.id = rp.permission_id"
+                    + " WHERE r.code = 'SUPER_ADMIN'",
+                String.class))
+        .contains("ROLE_MANAGE", "PERMISSION_MANAGE");
+  }
+
+  /**
+   * REQ-AUTH-003 AC2, AC3, AC5 end to end. One test, because the first SUPER_ADMIN is state the
+   * whole context shares.
+   */
+  @Test
+  void theBootstrappedSuperAdminGrantsAndRevokesRolesWithAuditRecords() throws Exception {
+    Response root = register(BOOTSTRAP_ADMIN, uniquePhone());
+    String rootId = root.body().path("userId").asString();
+    assertThat(superAdminBootstrap.bootstrap()).isEqualTo(SuperAdminBootstrap.Outcome.GRANTED);
+    assertThat(superAdminBootstrap.bootstrap())
+        .as("never a second time")
+        .isEqualTo(SuperAdminBootstrap.Outcome.ALREADY_PRESENT);
+    JsonNode bootstrapAudit = json.readTree(awaitRecord("audit.events.v1", rootId).value());
+    assertThat(bootstrapAudit.path("actor").path("type").asString()).isEqualTo("SYSTEM");
+    assertThat(bootstrapAudit.path("payload").path("action").asString()).isEqualTo("ROLE_GRANTED");
+
+    String rootToken =
+        post(
+                "/api/v1/auth/login",
+                json.writeValueAsString(
+                    Map.of("identifier", BOOTSTRAP_ADMIN, "password", PASSWORD)))
+            .body()
+            .path("accessToken")
+            .asString();
+    assertThat(decode(rootToken).getClaimAsStringList("perms")).contains("ROLE_MANAGE");
+
+    Response target = register(uniqueEmail(), uniquePhone());
+    String targetId = target.body().path("userId").asString();
+    String customerToken = target.body().path("accessToken").asString();
+
+    Response denied = send(authorized(customerToken, "/api/v1/admin/roles").GET().build());
+    assertThat(denied.status()).isEqualTo(403);
+    assertThat(denied.code()).isEqualTo("FORBIDDEN");
+
+    Response granted =
+        send(
+            authorized(rootToken, "/api/v1/admin/users/" + targetId + "/roles")
+                .header("Content-Type", "application/json")
+                .POST(
+                    HttpRequest.BodyPublishers.ofString(
+                        "{\"role\":\"SUPPORT_AGENT\",\"reason\":\"joins the support desk\"}"))
+                .build());
+    assertThat(granted.status()).isEqualTo(201);
+    String assignmentId = granted.body().path("id").asString();
+
+    JsonNode audit = json.readTree(awaitRecord("audit.events.v1", targetId).value());
+    assertThat(audit.path("eventType").asString()).isEqualTo("AuditRecorded");
+    assertThat(audit.path("actor").path("id").asString()).isEqualTo(rootId);
+    JsonNode payload = audit.path("payload");
+    assertThat(payload.path("action").asString()).isEqualTo("ROLE_GRANTED");
+    assertThat(payload.path("actorRoles").get(0).asString()).isEqualTo("SUPER_ADMIN");
+    assertThat(payload.path("newValue").path("role").asString()).isEqualTo("SUPPORT_AGENT");
+    assertThat(payload.path("reason").asString()).isEqualTo("joins the support desk");
+    assertThat(new ArrayList<>(payload.propertyNames()))
+        .containsExactlyInAnyOrderElementsOf(
+            schemaProperties("/event-contracts/audit.events.v1/AuditRecorded.v1.schema.json"));
+
+    Response refreshed = refresh(target.body().path("refreshToken").asString());
+    assertThat(
+            decode(refreshed.body().path("accessToken").asString()).getClaimAsStringList("roles"))
+        .as("role changes reach the token at the next refresh")
+        .containsExactlyInAnyOrder("CUSTOMER", "SUPPORT_AGENT");
+
+    String rootAssignment = null;
+    for (JsonNode assignment :
+        send(authorized(rootToken, "/api/v1/admin/users/" + rootId + "/roles").GET().build())
+            .body()) {
+      if ("SUPER_ADMIN".equals(assignment.path("role").asString())) {
+        rootAssignment = assignment.path("id").asString();
+      }
+    }
+    assertThat(rootAssignment).isNotNull();
+    Response lastSuperAdmin =
+        send(
+            authorized(
+                    rootToken,
+                    "/api/v1/admin/users/" + rootId + "/roles/" + rootAssignment + "?reason=test")
+                .DELETE()
+                .build());
+    assertThat(lastSuperAdmin.status()).isEqualTo(403);
+
+    Response revoked =
+        send(
+            authorized(
+                    rootToken,
+                    "/api/v1/admin/users/" + targetId + "/roles/" + assignmentId + "?reason=left")
+                .DELETE()
+                .build());
+    assertThat(revoked.status()).isEqualTo(204);
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT count(*) FROM user_roles WHERE id = ?::uuid", Integer.class, assignmentId))
+        .isZero();
   }
 
   @Test
@@ -296,14 +407,25 @@ class IdentityIntegrationTest {
     assertThat(denied.code()).isEqualTo("UNAUTHENTICATED");
   }
 
-  private List<String> schemaProperties() throws Exception {
-    try (InputStream in =
-        getClass()
-            .getResourceAsStream(
-                "/event-contracts/identity.events.v1/UserRegistered.v1.schema.json")) {
-      assertThat(in).as("UserRegistered schema on the classpath").isNotNull();
+  private List<String> schemaProperties(String resource) throws Exception {
+    try (InputStream in = getClass().getResourceAsStream(resource)) {
+      assertThat(in).as(resource + " on the classpath").isNotNull();
       return new ArrayList<>(json.readTree(in).path("properties").propertyNames());
     }
+  }
+
+  private HttpRequest.Builder authorized(String accessToken, String path) {
+    return HttpRequest.newBuilder(uri(path)).header("Authorization", "Bearer " + accessToken);
+  }
+
+  private Jwt decode(String accessToken) {
+    NimbusJwtDecoder decoder =
+        NimbusJwtDecoder.withJwkSetUri(uri("/.well-known/jwks.json").toString()).build();
+    decoder.setJwtValidator(
+        new DelegatingOAuth2TokenValidator<>(
+            JwtValidators.createDefaultWithIssuer("fooddelivery-identity"),
+            new JwtClaimValidator<List<String>>("aud", aud -> aud.contains("fooddelivery-api"))));
+    return decoder.decode(accessToken);
   }
 
   private ConsumerRecord<String, String> awaitRecord(String topic, String key) {

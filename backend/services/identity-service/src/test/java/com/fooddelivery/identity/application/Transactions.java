@@ -1,6 +1,7 @@
 package com.fooddelivery.identity.application;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,6 +17,7 @@ final class Transactions {
     TransactionTemplate template = mock(TransactionTemplate.class);
     when(template.execute(any()))
         .thenAnswer(call -> call.<TransactionCallback<?>>getArgument(0).doInTransaction(null));
+    doCallRealMethod().when(template).executeWithoutResult(any());
     return template;
   }
 }

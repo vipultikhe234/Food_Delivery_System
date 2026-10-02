@@ -6,6 +6,7 @@ import com.fooddelivery.identity.application.IssuedTokens;
 import com.fooddelivery.identity.application.RegistrationService;
 import com.fooddelivery.identity.application.RegistrationService.Registration;
 import com.fooddelivery.identity.application.TokenRefreshService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Clock;
@@ -43,6 +44,7 @@ class AuthController {
   }
 
   @PostMapping("/register")
+  @PermitAll
   ResponseEntity<TokenResponse> register(
       @Valid @RequestBody AuthRequests.Register body, HttpServletRequest request) {
     IssuedTokens tokens =
@@ -53,6 +55,7 @@ class AuthController {
   }
 
   @PostMapping("/login")
+  @PermitAll
   ResponseEntity<TokenResponse> login(
       @Valid @RequestBody AuthRequests.Login body, HttpServletRequest request) {
     return respond(
@@ -60,6 +63,7 @@ class AuthController {
   }
 
   @PostMapping("/refresh")
+  @PermitAll
   ResponseEntity<TokenResponse> refresh(
       @Valid @RequestBody AuthRequests.Refresh body, HttpServletRequest request) {
     return respond(HttpStatus.OK, refresh.refresh(body.refreshToken(), client(request)));

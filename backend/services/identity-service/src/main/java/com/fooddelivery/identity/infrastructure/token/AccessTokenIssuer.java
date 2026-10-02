@@ -1,11 +1,12 @@
 package com.fooddelivery.identity.infrastructure.token;
 
 import com.fooddelivery.identity.config.IdentityProperties;
-import com.fooddelivery.identity.config.TokenClaimsProperties;
 import com.fooddelivery.identity.infrastructure.persistence.RoleStore.Grants;
+import com.fooddelivery.platform.security.JwtProperties;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -20,17 +21,16 @@ public class AccessTokenIssuer {
 
   private final JwtEncoder encoder;
   private final SigningKey key;
-  private final TokenClaimsProperties claims;
+  private final JwtProperties claims;
   private final IdentityProperties.Tokens tokens;
 
   public AccessTokenIssuer(
-      JwtEncoder encoder,
-      SigningKey key,
-      TokenClaimsProperties claims,
-      IdentityProperties.Tokens tokens) {
+      JwtEncoder encoder, SigningKey key, JwtProperties claims, IdentityProperties.Tokens tokens) {
     this.encoder = encoder;
     this.key = key;
-    this.claims = claims;
+    this.claims = Objects.requireNonNull(claims, "claims");
+    Objects.requireNonNull(claims.issuer(), "fdp.security.jwt.issuer");
+    Objects.requireNonNull(claims.audience(), "fdp.security.jwt.audience");
     this.tokens = tokens;
   }
 

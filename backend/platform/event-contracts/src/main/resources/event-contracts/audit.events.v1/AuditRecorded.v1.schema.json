@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.fooddelivery.example/event-contracts/audit.events.v1/AuditRecorded.v1.schema.json",
+  "title": "AuditRecorded v1 payload",
+  "description": "Published through the outbox by any service, in the transaction of a sensitive operation (REQ-AUDIT-001 AC2, AC4). The actor, the time and the correlation ID are in the envelope. Values are masked by the producer.",
+  "type": "object",
+  "required": ["actorRoles", "action", "entityType", "entityId"],
+  "additionalProperties": false,
+  "properties": {
+    "actorRoles": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Z][A-Z_]{1,63}$" },
+      "uniqueItems": true
+    },
+    "action": { "type": "string", "pattern": "^[A-Z][A-Z_]{1,63}$" },
+    "entityType": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "entityId": { "type": "string", "format": "uuid" },
+    "oldValue": { "type": ["object", "null"] },
+    "newValue": { "type": ["object", "null"] },
+    "reason": { "type": ["string", "null"], "maxLength": 500 },
+    "ip": { "type": ["string", "null"], "maxLength": 45 },
+    "traceId": { "type": ["string", "null"], "maxLength": 64 }
+  }
+}

@@ -15,7 +15,8 @@ class SigningKeyConfigurationTest {
     return new IdentityProperties(
         new IdentityProperties.Jwt(pem, ephemeral),
         new IdentityProperties.Tokens(Duration.ofMinutes(15), Duration.ofDays(30)),
-        new IdentityProperties.Events(1, (short) 1));
+        new IdentityProperties.Events(1, (short) 1, 1),
+        null);
   }
 
   @Test

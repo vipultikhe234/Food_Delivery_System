@@ -1,5 +1,5 @@
-# identity-service settings (REQ-AUTH-001; docs/09-security.md §2.2). Non-secret values only: the
-# signing key and database credentials come from the environment.
+# identity-service settings (REQ-AUTH-001, REQ-AUTH-003; docs/09-security.md §2.2). Non-secret
+# values only: the signing key and database credentials come from the environment.
 
 fdp:
   identity:
@@ -11,3 +11,9 @@ fdp:
       # identity.events.v1: 6 partitions in production, 1 locally (docs/08 §2)
       partitions: ${IDENTITY_EVENTS_PARTITIONS:1}
       replicas: ${KAFKA_REPLICATION_FACTOR:1}
+      # audit.events.v1: 12 partitions in production (docs/08 §2)
+      audit-partitions: ${AUDIT_EVENTS_PARTITIONS:1}
+    bootstrap:
+      # Owner decision 2026-10-02: an existing account becomes the first SUPER_ADMIN, only while
+      # no SUPER_ADMIN exists. Set per environment; empty means no bootstrap.
+      super-admin: ${IDENTITY_BOOTSTRAP_SUPER_ADMIN:}

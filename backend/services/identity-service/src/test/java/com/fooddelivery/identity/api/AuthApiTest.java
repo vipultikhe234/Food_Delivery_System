@@ -20,6 +20,7 @@ import com.fooddelivery.identity.application.RegistrationService;
 import com.fooddelivery.identity.application.TokenRefreshService;
 import com.fooddelivery.identity.config.SecurityConfig;
 import com.fooddelivery.identity.infrastructure.persistence.SigningKeyStore;
+import com.fooddelivery.platform.security.ResourceServerAutoConfiguration;
 import com.fooddelivery.platform.web.WebErrorAutoConfiguration;
 import com.fooddelivery.platform.web.error.ApiException;
 import java.time.Clock;
@@ -35,6 +36,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -47,7 +49,7 @@ import org.springframework.test.web.servlet.MockMvc;
       "eureka.client.enabled=false"
     })
 @Import({SecurityConfig.class, AuthApiTest.FixedClock.class})
-@ImportAutoConfiguration(WebErrorAutoConfiguration.class)
+@ImportAutoConfiguration({WebErrorAutoConfiguration.class, ResourceServerAutoConfiguration.class})
 class AuthApiTest {
 
   static final Instant NOW = Instant.parse("2026-10-02T08:00:00Z");
@@ -65,6 +67,7 @@ class AuthApiTest {
   @MockitoBean AuthenticationService authentication;
   @MockitoBean TokenRefreshService refresh;
   @MockitoBean SigningKeyStore signingKeys;
+  @MockitoBean JwtDecoder jwtDecoder;
 
   private final UUID userId = UUID.randomUUID();
   private final UUID sessionId = UUID.randomUUID();
