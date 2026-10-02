@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Version | 1.1.1 |
-| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design); v1.1.1 (Phase 4B implementation notes in §1, §5 and §6) **pending approval** |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design); v1.1.1 (Phase 4B implementation notes in §1, §5 and §6) **approved** 2026-10-02 |
 | Depends on | [ADR-002](17-adr/ADR-002-kafka.md), [ADR-005](17-adr/ADR-005-outbox-pattern.md), [ADR-007](17-adr/ADR-007-orchestrated-saga.md), [order-state-machine](architecture/order-state-machine.md) |
 | Requirements | REQ-PLAT-005, REQ-PLAT-006, REQ-ORDER-005, NFR-REL-001, NFR-CONS-003 |
 

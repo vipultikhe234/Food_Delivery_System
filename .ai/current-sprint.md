@@ -23,7 +23,8 @@ TESTS EXECUTED:     mvnw verify BUILD SUCCESS (2026-10-02): 123 run, 0 failures,
                     CI evidence for Phase 4A: ci-backend verify green on acc18ce
 NOT EXECUTED:       DatabaseIsolationTest (4), PersistenceIntegrationTest (11), EventsIntegrationTest (8): need Docker
                     (KI-021); they run in ci-backend once a PR exists. Compose stack still not run
-DECISIONS NEEDED:   Branch flow (KI-025); approve docs 06/08 v1.1.1; dismiss the 2 gateway CodeQL alerts (KI-027)
+DECISIONS:          2026-10-02 owner: fast-forward develop to main and open the 4B PR into develop (KI-025);
+                    docs 06 and 08 v1.1.1 approved; owner dismisses the 2 gateway CodeQL alerts (KI-027)
 KNOWN ISSUES:       KI-024..027 (new), KI-014, KI-015, KI-021 updated
 NEXT ACTION:        Open the 4B PR, read ci-backend annotations, fix anything the Docker tests find; then Phase 4
                     exit check (Compose stack runs + CI green) once Docker works

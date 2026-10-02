@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Version | 1.1.1 |
-| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design); v1.1.1 (Phase 4B: §1.3 `idempotency_keys.response_headers` and platform migration history) **pending approval** |
+| Status | **Approved** 2026-10-01 (v1.1.0: Restaurant OS design); v1.1.1 (Phase 4B: §1.3 `idempotency_keys.response_headers` and platform migration history) **approved** 2026-10-02 |
 | Depends on | [ADR-003](17-adr/ADR-003-postgresql.md), [ADR-005](17-adr/ADR-005-outbox-pattern.md), [ADR-019](17-adr/ADR-019-tenant-isolation.md), [ADR-020](17-adr/ADR-020-inventory-ledger-costing.md), [05 Microservices](05-microservices.md) |
 | Requirements | REQ-PLAT-006, REQ-PLAT-008, plus the `databaseRequirements` of every requirement |
 
