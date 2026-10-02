@@ -37,3 +37,33 @@ jobs:
       # Spotless check, JaCoCo report and enforcer rules are bound to the verify phase in backend/pom.xml
       - name: Build and test
         run: sh ./mvnw -B -ntp verify
+
+      # Annotations are readable through the public checks API without log access.
+      - name: Report test results
+        if: always()
+        shell: python3 {0}
+        run: |
+          import glob
+          import xml.etree.ElementTree as ET
+
+          def escape(text):
+              return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+          def escape_property(text):
+              return escape(text).replace(":", "%3A").replace(",", "%2C")
+
+          totals = {"tests": 0, "failures": 0, "errors": 0, "skipped": 0}
+          failed = []
+          for path in glob.glob("**/target/surefire-reports/TEST-*.xml", recursive=True):
+              suite = ET.parse(path).getroot()
+              for key in totals:
+                  totals[key] += int(suite.get(key, 0))
+              for case in suite.iter("testcase"):
+                  for problem in list(case.findall("failure")) + list(case.findall("error")):
+                      name = f"{case.get('classname')}.{case.get('name')}"
+                      message = (problem.get("message") or problem.get("type") or "")[:500]
+                      failed.append((name, message))
+
+          for name, message in failed[:20]:
+              print(f"::error title={escape_property(name)}::{escape(message)}")
+          print("::notice title=Backend tests::" + ", ".join(f"{k}={v}" for k, v in totals.items()))
