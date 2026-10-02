@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0.1 |
-| Status | **Approved** 2026-10-01. v1.0.1: `USER_ALREADY_EXISTS` replaces `PHONE_ALREADY_REGISTERED` / `EMAIL_ALREADY_REGISTERED` to match REQ-AUTH-001 AC1 (owner decision 2026-10-02, approved); HTTP statuses of the auth codes in §3.1 **pending approval** |
+| Version | 1.0.2 |
+| Status | **Approved** 2026-10-01. v1.0.1: `USER_ALREADY_EXISTS` replaces `PHONE_ALREADY_REGISTERED` / `EMAIL_ALREADY_REGISTERED` to match REQ-AUTH-001 AC1 (owner decision 2026-10-02, approved). v1.0.2: HTTP statuses of the auth codes in §3.1 approved (owner 2026-10-02); §6.1 documents the access administration endpoints already listed in [05 §1.2](05-microservices.md) (REQ-AUTH-003) |
 | Requirements | REQ-PLAT-001, REQ-PLAT-004, REQ-PLAT-006, REQ-SEC-001, REQ-SEC-002 |
 | Endpoint inventory | [05 Microservices §3](05-microservices.md) |
 
@@ -124,6 +124,21 @@ Webhooks are deduplicated by `provider_event_id`, and Kafka consumers by `eventI
 - Public endpoints are explicitly listed in the gateway (§05 1.2); everything else requires a JWT.
 - Method security: `@PreAuthorize("hasAuthority('ORDER_CANCEL')")`, plus an ownership check in the application service (`order.customerId == principal.userId`, or a staff scope that contains `order.branchId`).
 - Internal endpoints require a service token (client-credentials JWT with `aud=internal` and scope `svc:<caller>`) and are blocked by NetworkPolicy from outside the namespace.
+- No token, or an invalid one, is 401 `UNAUTHENTICATED` with `WWW-Authenticate: Bearer`; a valid token without the permission is 403 `FORBIDDEN`. Endpoints without a declared permission or `@PermitAll` fail the build (REQ-AUTH-003 AC3).
+
+### 6.1 Access administration (identity-service, REQ-AUTH-003, v1.0.2)
+Every change takes a `reason` and writes an `AuditRecorded` event (`audit.events.v1`) in the same transaction. Role changes reach access tokens at the next refresh (at most 15 minutes).
+
+| Method and path | Permission | Result |
+|---|---|---|
+| `GET /api/v1/admin/permissions` | `PERMISSION_MANAGE` | 200: `[{code, category, description}]` |
+| `GET /api/v1/admin/roles` | `ROLE_MANAGE` | 200: `[{code, description, scopeTypes, permissions}]` |
+| `PUT /api/v1/admin/roles/{code}` body `{permissions, reason}` | `PERMISSION_MANAGE` | 200 with the role. Unknown permission codes are 400; `SUPER_ADMIN` cannot be changed (403) |
+| `GET /api/v1/admin/users/{userId}/roles` | `ROLE_MANAGE` | 200: `[{id, role, scopeType, scopeId, grantedBy, grantedAt}]`; 404 for an unknown user |
+| `POST /api/v1/admin/users/{userId}/roles` body `{role, scopeType?, scopeId?, reason}` | `ROLE_MANAGE` | 201 for a new assignment, 200 when it already exists. `scopeType` defaults to `GLOBAL`; `RESTAURANT` and `BRANCH` need `scopeId` and must be allowed for the role (400 otherwise) |
+| `DELETE /api/v1/admin/users/{userId}/roles/{assignmentId}?reason=` | `ROLE_MANAGE` | 204. The last `SUPER_ADMIN` cannot be removed (403) |
+
+Only a caller holding `SUPER_ADMIN` grants or revokes `ADMIN` and `SUPER_ADMIN` (403 otherwise, AC5). The first `SUPER_ADMIN` comes from `IDENTITY_BOOTSTRAP_SUPER_ADMIN`, which names an account that is already registered. It takes effect only while no `SUPER_ADMIN` exists, and the grant is audited with actor `SYSTEM` (owner decision 2026-10-02).
 
 ## 7. Rate limits (initial, REQ-SEC-001)
 | Bucket | Key | Limit |

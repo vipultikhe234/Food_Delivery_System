@@ -1,6 +1,34 @@
 # Current Sprint
 
 ```text
+TASK ID:            TASK-PHASE5-002
+REQUIREMENT ID:     REQ-AUTH-003 v2 (release v0.2.0)
+CURRENT STATUS:     DEVELOPMENT (recorded in requirements.json). Same branch as TASK-PHASE5-001
+                    (feature/phase-5-identity), stacked on the Phase 4B branch
+WHAT WAS CHANGED:   New platform/common-security: JWT resource server auto-configuration (JWKS URI, RS256, issuer
+                    and audience checks), AuthenticatedUser principal (roles, permissions, RESTAURANT/BRANCH scopes),
+                    permissions as authorities, 401/403 problem documents, CSRF only for cookie requests, method
+                    security with @PermitAll. test-support: EndpointSecurityRules (every endpoint declares access).
+                    common-events: AuditRecorded v1 + schema (audit.events.v1). identity-service: validates its own
+                    tokens against the signing_keys table (PublishedKeysJwkSource), admin API, SUPER_ADMIN bootstrap,
+                    every role change audited through the outbox. IDENTITY_BOOTSTRAP_SUPER_ADMIN in .env.example and
+                    Compose; doc 07 v1.0.2
+DATABASE CHANGES:   identity_db V2__roles_and_permissions: roles.scope_types, 10 more roles (11 total), 69
+                    permissions, 170 role grants per docs/09 §3.3 and ROS §5.2 (fails on unknown codes)
+API CHANGES:        GET /api/v1/admin/permissions, GET /api/v1/admin/roles, PUT /api/v1/admin/roles/{code},
+                    GET|POST /api/v1/admin/users/{userId}/roles, DELETE /api/v1/admin/users/{userId}/roles/{id}
+TESTS EXECUTED:     mvnw verify BUILD SUCCESS (2026-10-02): 221 run, 0 failures, 32 skipped (Docker). common-security
+                    13, common-events 24 (+8 skipped), identity-service 81 run, 72 passed, 9 skipped. Requirements
+                    validator OK incl. history check against origin/main
+NOT EXECUTED:       IdentityIntegrationTest (9, 2 new for RBAC): needs Docker (KI-021); runs in ci-backend
+DECISIONS:          2026-10-02 owner: SUPER_ADMIN bootstrap from an env var naming a registered account; partial
+                    grants deferred (KI-030); doc 07 auth error statuses approved
+KNOWN ISSUES:       KI-030, KI-031 new; KI-020 updated (role changes reach tokens at the next refresh)
+NEXT ACTION:        Owner opens the 4B PR, then the Phase 5 PR into develop. Next identity slice: REQ-AUTH-002 (OTP)
+                    or KI-029 with REQ-AUTH-004
+```
+
+```text
 TASK ID:            TASK-PHASE5-001
 REQUIREMENT ID:     REQ-AUTH-001 (release v0.2.0)
 CURRENT STATUS:     DEVELOPMENT (recorded in requirements.json). Code on feature/phase-5-identity, branched from the
