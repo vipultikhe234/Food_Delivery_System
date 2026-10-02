@@ -524,7 +524,7 @@
     {
       "id": "REQ-AUTH-001",
       "title": "Registration and login with JWT access token and rotating refresh token",
-      "module": "AUTH", "version": 1, "status": "APPROVED", "priority": "P0", "phase": 5, "targetRelease": "v0.2.0",
+      "module": "AUTH", "version": 1, "status": "DEVELOPMENT", "priority": "P0", "phase": 5, "targetRelease": "v0.2.0",
       "source": ["MP §19", "MP §21"], "businessRequirement": ["BR-01", "BR-10"],
       "description": "Users register and log in; services authenticate requests with locally verifiable JWTs.",
       "technicalRequirement": "identity-service issues RS256 access tokens (PROPOSED 15 min) and opaque refresh tokens (PROPOSED 30 days) stored hashed with family-based reuse detection; JWKS endpoint for verification.",
@@ -544,9 +544,9 @@
       "securityRequirements": ["Web: access token in memory, refresh token in HttpOnly Secure SameSite cookie", "Key rotation supported via JWKS kid"],
       "performanceRequirements": ["Login p95 < 500 ms excluding hashing cost tuning"],
       "assignedAgent": "BackendAgent", "assignedDeveloper": null,
-      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-01",
+      "createdBy": "RequirementAgent", "createdDate": "2026-10-01", "updatedDate": "2026-10-02",
       "changeHistory": [{"version": 1, "date": "2026-10-01", "by": "RequirementAgent", "status": "ANALYSIS", "summary": "Initial version (STEP 1 requirement analysis)"}],
-      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}]
+      "statusHistory": [{"version": 1, "from": "DRAFT", "to": "ANALYSIS", "date": "2026-10-01", "by": "RequirementAgent", "reason": "STEP 1 requirement analysis"}, {"version": 1, "from": "ANALYSIS", "to": "APPROVED", "date": "2026-10-01", "by": "Project owner", "reason": "Baseline approved (instruction: continue)"}, {"version": 1, "from": "APPROVED", "to": "DESIGN", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 5: design per docs/06 §2.1, docs/09 §2.1-2.3, docs/07 v1.1.1 (owner decisions 2026-10-02: duplicate code USER_ALREADY_EXISTS per AC1; new accounts ACTIVE, contact verification left to REQ-AUTH-002). UserRegistered v1 payload defined in event-contracts/identity.events.v1/UserRegistered.v1.schema.json"}, {"version": 1, "from": "DESIGN", "to": "DEVELOPMENT", "date": "2026-10-02", "by": "BackendAgent", "reason": "Phase 5: identity-service (branch feature/phase-5-identity). Local mvnw verify green, identity-service 54 run (47 passed, 7 skipped): AC1 RegistrationServiceTest (409 USER_ALREADY_EXISTS incl. lost race, validation, CUSTOMER role, event); AC2 PasswordHashingTest (Argon2id m=19456,t=2,p=1); AC3 AuthenticationServiceTest (same code, detail and hash work for unknown account and wrong password) + AuthApiTest; AC4 TokenRefreshServiceTest (rotation, family revoked on reuse); AC5 AccessTokenIssuerTest (RS256, kid, claims verified with the public key only). NOT EXECUTED locally (no Docker, KI-021): IdentityIntegrationTest (7: real migrations, case-insensitive duplicates, login by e-mail/phone, reuse revokes family in PostgreSQL, token verified via live JWKS, UserRegistered on Kafka without contact data, no password in logs); runs in ci-backend. Open: web cookie refresh + CSRF (KI-029, REQ-SEC-002 AC4); downstream services' JWKS validation lands with their first secured endpoint (gateway already validates via JWKS); breached-password check (KI-028); REFRESH_TOKEN_REUSED audit event waits for REQ-AUDIT-001; immediate revocation via Redis waits for REQ-AUTH-004/005"}]
     },
     {
       "id": "REQ-AUTH-002",

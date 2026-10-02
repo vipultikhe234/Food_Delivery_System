@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0.0 |
-| Status | **Approved** 2026-10-01 |
+| Version | 1.0.1 |
+| Status | **Approved** 2026-10-01. v1.0.1: `USER_ALREADY_EXISTS` replaces `PHONE_ALREADY_REGISTERED` / `EMAIL_ALREADY_REGISTERED` to match REQ-AUTH-001 AC1 (owner decision 2026-10-02, approved); HTTP statuses of the auth codes in §3.1 **pending approval** |
 | Requirements | REQ-PLAT-001, REQ-PLAT-004, REQ-PLAT-006, REQ-SEC-001, REQ-SEC-002 |
 | Endpoint inventory | [05 Microservices §3](05-microservices.md) |
 
@@ -69,11 +69,11 @@ Rules:
 | Status | When |
 |---|---|
 | 200 / 201 / 204 | Success. 201 with a `Location` header for creates. 202 for accepted asynchronous work (e.g. refund requested). |
-| 400 `VALIDATION_FAILED` | Malformed or invalid input |
-| 401 `UNAUTHENTICATED` | Missing, invalid or expired token |
-| 403 `FORBIDDEN` | Authenticated but lacking a permission **or** ownership (IDOR checks return 404 when revealing existence would leak data, e.g. another customer's order) |
+| 400 `VALIDATION_FAILED` | Malformed or invalid input; `PASSWORD_POLICY_VIOLATION` (v1.0.1) |
+| 401 `UNAUTHENTICATED` | Missing, invalid or expired token; `INVALID_CREDENTIALS`, `REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED` (v1.0.1) |
+| 403 `FORBIDDEN` | Authenticated but lacking a permission **or** ownership (IDOR checks return 404 when revealing existence would leak data, e.g. another customer's order); `ACCOUNT_BLOCKED` (v1.0.1, only after a correct password) |
 | 404 `NOT_FOUND` | Resource missing or not visible to the caller |
-| 409 | State conflicts: `INVALID_ORDER_TRANSITION`, `ORDER_NOT_CANCELLABLE`, `CONCURRENT_MODIFICATION`, `CART_BRANCH_CONFLICT`, `IDEMPOTENCY_IN_PROGRESS` |
+| 409 | State conflicts: `INVALID_ORDER_TRANSITION`, `ORDER_NOT_CANCELLABLE`, `CONCURRENT_MODIFICATION`, `CART_BRANCH_CONFLICT`, `IDEMPOTENCY_IN_PROGRESS`, `USER_ALREADY_EXISTS` (v1.0.1) |
 | 410 | `QUOTE_EXPIRED` |
 | 422 | Business rule violations: `QUOTE_INVALID`, `COUPON_NOT_APPLICABLE`, `COUPON_EXHAUSTED`, `BRANCH_CLOSED`, `ITEM_UNAVAILABLE`, `ADDRESS_NOT_SERVICEABLE`, `MIN_ORDER_NOT_MET`, `COD_NOT_ELIGIBLE`, `REFUND_EXCEEDS_CAPTURED`, `IDEMPOTENCY_KEY_REUSED` |
 | 423 | `ACCOUNT_LOCKED` (with `Retry-After`) |
@@ -87,7 +87,7 @@ Owned in `backend/platform/common-web` as `ErrorCode` enums per domain, and docu
 | Domain | Codes |
 |---|---|
 | Common | `VALIDATION_FAILED`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONCURRENT_MODIFICATION`, `RATE_LIMITED`, `IDEMPOTENCY_IN_PROGRESS`, `IDEMPOTENCY_KEY_REUSED`, `DEPENDENCY_UNAVAILABLE`, `INTERNAL_ERROR`, `UPGRADE_REQUIRED` |
-| Auth | `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED`, `ACCOUNT_BLOCKED`, `OTP_INVALID`, `OTP_EXPIRED`, `OTP_RATE_LIMITED`, `REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED`, `PASSWORD_POLICY_VIOLATION`, `PHONE_ALREADY_REGISTERED`, `EMAIL_ALREADY_REGISTERED` |
+| Auth | `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED`, `ACCOUNT_BLOCKED`, `OTP_INVALID`, `OTP_EXPIRED`, `OTP_RATE_LIMITED`, `REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED`, `PASSWORD_POLICY_VIOLATION`, `USER_ALREADY_EXISTS` (v1.0.1; the response does not say whether the e-mail address or the phone number matched) |
 | Restaurant / menu | `RESTAURANT_NOT_APPROVED`, `BRANCH_CLOSED`, `ITEM_UNAVAILABLE`, `ADDON_SELECTION_INVALID`, `INVALID_HOURS` |
 | Cart / quote | `CART_BRANCH_CONFLICT`, `CART_EMPTY`, `MIN_ORDER_NOT_MET`, `ADDRESS_NOT_SERVICEABLE`, `QUOTE_EXPIRED`, `QUOTE_INVALID`, `PRICE_CHANGED` |
 | Promotion | `COUPON_NOT_FOUND`, `COUPON_EXPIRED`, `COUPON_NOT_APPLICABLE`, `COUPON_EXHAUSTED`, `COUPON_USER_LIMIT_REACHED` |

@@ -1,6 +1,36 @@
 # Current Sprint
 
 ```text
+TASK ID:            TASK-PHASE5-001
+REQUIREMENT ID:     REQ-AUTH-001 (release v0.2.0)
+CURRENT STATUS:     DEVELOPMENT (recorded in requirements.json). Code on feature/phase-5-identity, branched from the
+                    Phase 4B branch (stacked: 4B must be merged into develop first). Started while 4B is in review,
+                    on the owner's instruction
+WHAT WAS CHANGED:   New backend/services/identity-service: register / login / refresh (rotation with reuse detection
+                    and family revocation) under /api/v1/auth, JWKS at /.well-known/jwks.json; Argon2id hashing
+                    (BouncyCastle, version managed in the root POM); RS256 access tokens (15 min, kid = RFC 7638
+                    thumbprint); opaque refresh tokens stored as SHA-256 only (30 d); enumeration-safe login;
+                    stateless security with CSRF kept on (only the three body-credential POSTs exempt) and
+                    denyAll for everything else; UserRegistered v1 via the outbox (schema without contact data);
+                    config-repo identity-service.yml; Compose service in the new `core` profile; doc 07 v1.0.1
+DATABASE CHANGES:   identity_db V1__identity_core: users, roles (CUSTOMER seeded), permissions, role_permissions,
+                    user_roles, refresh_tokens, signing_keys; plus the platform outbox migration
+API CHANGES:        POST /api/v1/auth/register (201), /login, /refresh; GET /.well-known/jwks.json. Error codes
+                    USER_ALREADY_EXISTS 409, INVALID_CREDENTIALS 401, ACCOUNT_LOCKED 423, ACCOUNT_BLOCKED 403,
+                    REFRESH_TOKEN_INVALID / REFRESH_TOKEN_REUSED 401, PASSWORD_POLICY_VIOLATION 400
+TESTS EXECUTED:     mvnw verify BUILD SUCCESS (2026-10-02): 178 run, 0 failures, 30 skipped (Docker). identity-service
+                    54 run, 47 passed, 7 skipped. Requirements validator OK incl. history check against origin/main
+NOT EXECUTED:       IdentityIntegrationTest (7): needs Docker (KI-021); runs in ci-backend once a PR exists. This is
+                    also the first check of the Flyway schema against Hibernate validation. Compose service not run
+DECISIONS:          2026-10-02 owner: duplicate registration returns 409 USER_ALREADY_EXISTS without naming the
+                    field (doc 07 corrected to v1.0.1); new accounts are ACTIVE, verification left to REQ-AUTH-002.
+                    Pending owner approval: the HTTP statuses of the auth codes in doc 07 §3.1
+KNOWN ISSUES:       KI-028 (breached-password check), KI-029 (web refresh cookie + CSRF double-submit) new
+NEXT ACTION:        Owner opens the 4B PR; after 4B is merged, open the Phase 5 PR into develop and fix anything
+                    the integration tests find. Next identity slice: REQ-AUTH-002 (OTP) or KI-029 with REQ-AUTH-004
+```
+
+```text
 TASK ID:            TASK-PHASE4B-001
 REQUIREMENT ID:     REQ-PLAT-004 (v2), REQ-PLAT-005, REQ-PLAT-006, REQ-PLAT-007, REQ-PLAT-008 (release v0.1.0)
 CURRENT STATUS:     DEVELOPMENT (recorded in requirements.json). Code complete on feature/phase-4b-platform-libraries;
