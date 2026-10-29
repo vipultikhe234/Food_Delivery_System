@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
 
@@ -28,7 +28,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Spring Cloud 2025.1.x supports Spring Boot >= 4.0.0 and < 4.2.0 (checked 2026-10-01) -->
-        <spring-cloud.version>2025.1.3</spring-cloud.version>
+        <spring-cloud.version>2025.1.4</spring-cloud.version>
 
         <spotless-maven-plugin.version>3.10.3</spotless-maven-plugin.version>
         <!-- 1.37.0 fails inside spotless-maven-plugin 3.10.3 (InvocationTargetException in the Javadoc formatter); 1.36.1 is the plugin's default -->
