@@ -13,6 +13,6 @@
     "validate:requirements": "node tools/requirements-validator/src/cli.mjs"
   },
   "devDependencies": {
-    "turbo": "2.11.6"
+    "turbo": "2.11.10"
   }
 }
